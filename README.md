@@ -26,11 +26,15 @@ A Next.js Web3 application for invoice financing built on Arbitrum Sepolia. User
 Create a `.env.local` file in the root directory:
 
 ```bash
-# Alchemy RPC URL (public, used by client)
-NEXT_PUBLIC_ALCHEMY_API_URL=https://arb-sepolia.g.alchemy.com/v2/YOUR_API_KEY
+# Alchemy API Key and Policy ID (public, used by client)
+NEXT_PUBLIC_ALCHEMY_API_KEY=your-alchemy-api-key
+NEXT_PUBLIC_ALCHEMY_POLICY_ID=your-alchemy-policy-id
 
-# Supabase (public URL, service role key for server only)
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key-here
+# OR use ANON_KEY (alternative):
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
 # Contract Addresses (set after deployment)
@@ -46,7 +50,8 @@ DEPLOYER_PRIVATE_KEY=your-private-key-here
 Create a `.env` file in the `contracts/` directory:
 
 ```bash
-ALCHEMY_API_URL=https://arb-sepolia.g.alchemy.com/v2/YOUR_API_KEY
+ALCHEMY_API_KEY=your-alchemy-api-key
+ALCHEMY_POLICY_ID=your-alchemy-policy-id
 DEPLOYER_PRIVATE_KEY=your-private-key-here
 ```
 

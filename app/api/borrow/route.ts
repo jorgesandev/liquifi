@@ -7,11 +7,17 @@ const VAULT_CONTRACT_ADDRESS =
   "0x0000000000000000000000000000000000000000";
 
 const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
-const ALCHEMY_API_URL = process.env.NEXT_PUBLIC_ALCHEMY_API_URL;
+const alchemyApiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
+const alchemyPolicyId = process.env.NEXT_PUBLIC_ALCHEMY_POLICY_ID;
 
-if (!DEPLOYER_PRIVATE_KEY || !ALCHEMY_API_URL) {
-  throw new Error("Missing DEPLOYER_PRIVATE_KEY or NEXT_PUBLIC_ALCHEMY_API_URL");
+if (!DEPLOYER_PRIVATE_KEY || !alchemyApiKey) {
+  throw new Error("Missing DEPLOYER_PRIVATE_KEY or NEXT_PUBLIC_ALCHEMY_API_KEY");
 }
+
+// Construct Alchemy RPC URL
+const ALCHEMY_API_URL = alchemyPolicyId
+  ? `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}?policyId=${alchemyPolicyId}`
+  : `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}`;
 
 // Basic Vault ABI
 const VAULT_ABI = [

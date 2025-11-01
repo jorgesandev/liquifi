@@ -5,16 +5,22 @@ import * as dotenv from "dotenv";
 // Load .env file from contracts directory
 dotenv.config({ path: __dirname + "/.env" });
 
-const ALCHEMY_API_URL = process.env.ALCHEMY_API_URL;
+const alchemyApiKey = process.env.ALCHEMY_API_KEY;
+const alchemyPolicyId = process.env.ALCHEMY_POLICY_ID;
 const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || "";
 
-if (!ALCHEMY_API_URL) {
-  throw new Error("Please set ALCHEMY_API_URL in contracts/.env");
+if (!alchemyApiKey) {
+  throw new Error("Please set ALCHEMY_API_KEY in contracts/.env");
 }
 
 if (!DEPLOYER_PRIVATE_KEY) {
   throw new Error("Please set DEPLOYER_PRIVATE_KEY in contracts/.env");
 }
+
+// Construct Alchemy RPC URL
+const ALCHEMY_API_URL = alchemyPolicyId
+  ? `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}?policyId=${alchemyPolicyId}`
+  : `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}`;
 
 const config: HardhatUserConfig = {
   solidity: {
