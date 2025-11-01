@@ -32,6 +32,22 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# contracts build artifacts
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/.env
+
+# abi (can be regenerated, but keeping for now)
+# /abi
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # vercel
 .vercel
