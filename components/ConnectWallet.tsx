@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { Wallet } from "lucide-react";
+import { Wallet, X } from "lucide-react";
 
 export function ConnectWallet() {
   const { address, isConnected } = useAccount();
@@ -46,10 +46,10 @@ export function ConnectWallet() {
         </div>
         <button
           onClick={() => disconnect()}
-          className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          className="px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
           title="Disconnect"
         >
-          <Wallet className="w-4 h-4" />
+          <X className="w-4 h-4" />
         </button>
       </div>
     );
