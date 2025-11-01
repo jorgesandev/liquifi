@@ -20,16 +20,30 @@ The deployer private key is used to:
 
 **Warning**: Only use a test wallet with testnet funds. Never use a wallet with real funds or your main account!
 
-## Option 2: Generate a New Wallet
+## Option 2: Generate a New Wallet (Easiest)
 
-You can generate a new wallet specifically for development:
+Use the provided script to generate a new wallet:
 
 ```bash
-# Using Node.js
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+npm run generate-wallet
 ```
 
-Or use a tool like:
+This will output:
+- A new private key
+- The wallet address  
+- Instructions to add it to `.env.local`
+
+⚠️ **Remember**: You'll need to fund this wallet with testnet ETH!
+
+### Alternative: Manual Generation
+
+You can also generate manually:
+```bash
+# Using Node.js
+node -e "console.log('0x' + require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Or use tools like:
 - https://vanity-eth.tk/
 - https://www.myetherwallet.com/create-wallet
 

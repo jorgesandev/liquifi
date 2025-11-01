@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { ConnectWallet } from "@/components/ConnectWallet";
 import { UploadCFDI } from "@/components/UploadCFDI";
 import { MintInvoice } from "@/components/MintInvoice";
 import { VaultActions } from "@/components/VaultActions";
+import { LoanSummary } from "@/components/LoanSummary";
 import { ToastContainer, type Toast } from "@/components/Toast";
 import { useAccount } from "wagmi";
 import { CheckCircle2, Circle } from "lucide-react";
@@ -16,6 +17,11 @@ export default function BorrowPage() {
   const [tokenId, setTokenId] = useState<string | null>(null);
   const [loanId, setLoanId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleToast = (toast: Toast) => {
     setToasts((prev) => [...prev, toast]);
@@ -25,11 +31,12 @@ export default function BorrowPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Only check completed states after component is mounted to prevent hydration mismatch
   const steps = [
-    { id: 1, name: "Connect Wallet", completed: isConnected },
-    { id: 2, name: "Upload CFDI", completed: invoiceId !== null },
-    { id: 3, name: "Mint NFT", completed: tokenId !== null },
-    { id: 4, name: "Borrow", completed: loanId !== null },
+    { id: 1, name: "Connect Wallet", completed: mounted && isConnected },
+    { id: 2, name: "Upload CFDI", completed: mounted && invoiceId !== null },
+    { id: 3, name: "Mint NFT", completed: mounted && tokenId !== null },
+    { id: 4, name: "Borrow", completed: mounted && loanId !== null },
   ];
 
   return (
@@ -84,6 +91,15 @@ export default function BorrowPage() {
             </div>
           </div>
 
+          {/* Loan Summary - Shows all information */}
+          {(invoiceId || tokenId || loanId) && (
+            <LoanSummary 
+              invoiceId={invoiceId}
+              tokenId={tokenId}
+              loanId={loanId}
+            />
+          )}
+
           {/* Main Content */}
           <div className="space-y-6">
             {/* Step 1: Connect Wallet */}
@@ -101,10 +117,13 @@ export default function BorrowPage() {
               />
             </div>
 
-            {/* Step 3: KYB Button */}
+            {/* Step 2.5: KYB Verification */}
             {invoiceId && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-900">KYB Verification</h2>
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">Step 2.5: KYB Verification</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Verifica tu organización para continuar con el proceso
+                </p>
                 <button
                   onClick={async () => {
                     try {
@@ -116,7 +135,7 @@ export default function BorrowPage() {
                       const data = await response.json();
                       handleToast({
                         id: Date.now().toString(),
-                        message: `KYB Score: ${data.score} (${data.status})`,
+                        message: `KYB Score: ${data.score}/100 (${data.status === "approved" ? "Aprobado" : "Pendiente"})`,
                         type: data.status === "approved" ? "success" : "info",
                       });
                     } catch (error) {
@@ -127,7 +146,7 @@ export default function BorrowPage() {
                       });
                     }
                   }}
-                  className="px-4 py-2 bg-purple-400 text-white rounded-lg hover:bg-purple-500 transition-colors shadow-sm"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
                 >
                   Run KYB Check
                 </button>

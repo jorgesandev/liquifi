@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "compile": "hardhat compile",
-    "deploy": "hardhat run scripts/deploy.ts --network arbitrumSepolia"
+    "deploy:sepolia": "hardhat run scripts/deploy-sepolia.ts --network sepolia",
+    "deploy:arb": "hardhat run scripts/deploy-arb-sepolia.ts --network arbitrumSepolia",
+    "deploy": "hardhat run scripts/deploy-arb-sepolia.ts --network arbitrumSepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",

@@ -44,23 +44,25 @@ export function VaultActions({
         body: JSON.stringify({ tokenId }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Borrow failed");
+        throw new Error(data.details || data.error || "Borrow failed");
       }
 
-      const data = await response.json();
       setLoanInfo({ loanId: data.loanId, txHash: data.txHash });
       onBorrowed(data.loanId, data.txHash);
 
       onToast({
         id: Date.now().toString(),
-        message: "Loan created successfully",
+        message: `Préstamo aprobado: ${(Number(data.amount) / 1e6).toLocaleString()} mUSDC`,
         type: "success",
       });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to borrow";
       onToast({
         id: Date.now().toString(),
-        message: "Failed to borrow",
+        message: errorMessage,
         type: "error",
       });
     } finally {

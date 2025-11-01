@@ -22,17 +22,20 @@ const ALCHEMY_API_URL = alchemyPolicyId
   ? `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}?policyId=${alchemyPolicyId}`
   : `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}`;
 
-// Basic ERC721 ABI for minting
+// INFT Contract ABI
 const INFT_ABI = [
   "function mint(address to, string memory tokenURI) external returns (uint256)",
   "function mintWithMetadata(address to, string memory tokenURI, string memory invoiceHash, uint256 amount) external returns (uint256)",
   "function owner() external view returns (address)",
   "function totalSupply() external view returns (uint256)",
   "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+  "event InvoiceMinted(uint256 indexed tokenId, address indexed to, address indexed issuer, string debtor, uint256 amount, uint256 dueDate)",
 ];
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("📝 Mint endpoint called");
+    
     const body = await request.json();
     const { invoice_id } = body;
 
@@ -40,6 +43,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "invoice_id is required" },
         { status: 400 }
+      );
+    }
+
+    // Validate contract address
+    if (!INFT_CONTRACT_ADDRESS || INFT_CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000") {
+      return NextResponse.json(
+        { error: "INFT contract address not configured" },
+        { status: 500 }
       );
     }
 
@@ -92,61 +103,101 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    // Get token ID using static call (simulates the transaction to get return value)
+    // Prepare minting parameters
     const tokenURIBase64 = `data:application/json;base64,${Buffer.from(tokenURI).toString("base64")}`;
     const invoiceAmount = BigInt(Math.floor(Number(invoice.amount)));
     
-    let tokenId: string;
+    // Get current total supply to predict tokenId
+    let currentSupply = 0n;
     try {
-      // Use mintWithMetadata to store invoice hash and amount on-chain
-      const tokenIdBigInt = await contract.mintWithMetadata.staticCall(
+      const supply = await contract.totalSupply();
+      currentSupply = BigInt(supply.toString());
+    } catch (err) {
+      console.warn("Could not get totalSupply:", err);
+    }
+
+    // Mint NFT with metadata
+    console.log("Minting NFT with params:", {
+      to: signer.address,
+      amount: invoiceAmount.toString(),
+      hash: invoice.cfdi_hash.substring(0, 16) + "...",
+    });
+
+    let mintTx;
+    try {
+      mintTx = await contract.mintWithMetadata(
         signer.address,
         tokenURIBase64,
         invoice.cfdi_hash,
         invoiceAmount
       );
-      tokenId = tokenIdBigInt.toString();
-    } catch {
-      // If static call fails, we'll get it from totalSupply after minting
-      tokenId = "";
+    } catch (error: any) {
+      console.error("Minting transaction failed:", error);
+      // Check if it's a revert reason
+      const errorMessage = error.reason || error.message || "Unknown error";
+      return NextResponse.json(
+        { 
+          error: "Failed to mint NFT", 
+          details: errorMessage,
+          code: error.code
+        },
+        { status: 500 }
+      );
     }
 
-    // Mint NFT with metadata
-    const mintTx = await contract.mintWithMetadata(
-      signer.address,
-      tokenURIBase64,
-      invoice.cfdi_hash,
-      invoiceAmount
-    );
+    console.log("Transaction sent, waiting for confirmation...");
     const receipt = await mintTx.wait();
+    console.log("Transaction confirmed:", receipt.hash);
 
-    // If we didn't get tokenId from static call, get it from totalSupply
-    if (!tokenId) {
+    // Get tokenId from totalSupply (should be currentSupply + 1)
+    let tokenId: string;
+    try {
+      const newSupply = await contract.totalSupply();
+      tokenId = newSupply.toString();
+      
+      // Verify tokenId makes sense
+      if (currentSupply > 0n && BigInt(tokenId) <= currentSupply) {
+        // Fallback: parse from events
+        throw new Error("TokenId validation failed, parsing from events");
+      }
+    } catch (err) {
+      console.warn("Could not get tokenId from totalSupply, parsing from events:", err);
+      // Parse from Transfer event
       try {
-        const totalSupply = await contract.totalSupply();
-        tokenId = totalSupply.toString();
-      } catch {
-        // Parse from Transfer event as last resort
-        try {
-          const transferEvent = receipt.logs.find((log: any) => {
-            try {
-              const parsed = contract.interface.parseLog(log);
-              return parsed?.name === "Transfer";
-            } catch {
-              return false;
-            }
-          });
-          if (transferEvent) {
-            const parsed = contract.interface.parseLog(transferEvent);
-            tokenId = parsed?.args[2]?.toString() || "1";
-          } else {
-            tokenId = "1";
+        const iface = contract.interface;
+        const transferEvent = receipt.logs.find((log: any) => {
+          try {
+            const parsed = iface.parseLog(log);
+            return parsed?.name === "Transfer" || parsed?.name === "InvoiceMinted";
+          } catch {
+            return false;
           }
-        } catch {
-          tokenId = "1";
+        });
+        
+        if (transferEvent) {
+          const parsed = iface.parseLog(transferEvent);
+          // Transfer event: Transfer(from, to, tokenId)
+          // InvoiceMinted event: InvoiceMinted(tokenId, to, issuer, debtor, amount, dueDate)
+          if (parsed?.name === "Transfer" && parsed.args.length >= 3) {
+            tokenId = parsed.args[2].toString();
+          } else if (parsed?.name === "InvoiceMinted" && parsed.args.length >= 1) {
+            tokenId = parsed.args[0].toString();
+          } else {
+            // Fallback: use expected tokenId
+            tokenId = (currentSupply + 1n).toString();
+          }
+        } else {
+          // Last resort: use expected tokenId
+          tokenId = (currentSupply + 1n).toString();
         }
+      } catch (parseErr) {
+        console.error("Failed to parse events:", parseErr);
+        // Last resort: use expected tokenId
+        tokenId = (currentSupply + 1n).toString();
       }
     }
+
+    console.log("Minted tokenId:", tokenId);
 
     // Update invoice status
     await supabase
@@ -160,9 +211,21 @@ export async function POST(request: NextRequest) {
       invoice_id: invoice_id,
     });
   } catch (error: any) {
-    console.error("Mint error:", error);
+    console.error("❌ Mint error:", error);
+    console.error("Error stack:", error?.stack);
+    
+    // Extract more details from the error
+    const errorMessage = error.reason || error.message || "Internal server error";
+    const errorCode = error.code || error.error?.code;
+    const errorData = error.data || error.error?.data;
+    
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { 
+        error: errorMessage,
+        code: errorCode,
+        data: errorData,
+        details: process.env.NODE_ENV === "development" ? error?.stack : undefined
+      },
       { status: 500 }
     );
   }
