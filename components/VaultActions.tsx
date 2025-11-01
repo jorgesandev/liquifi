@@ -77,10 +77,10 @@ export function VaultActions({
 
       {loanInfo ? (
         <div className="text-sm space-y-1">
-          <div className="text-green-600 dark:text-green-400">
+          <div className="text-purple-600">
             Loan ID: {loanInfo.loanId}
           </div>
-          <div className="font-mono text-xs break-all">
+          <div className="font-mono text-xs break-all text-gray-600">
             TX: {loanInfo.txHash}
           </div>
         </div>
@@ -88,7 +88,7 @@ export function VaultActions({
         <button
           onClick={handleBorrow}
           disabled={!tokenId || isBorrowing}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
         >
           <ArrowDownCircle className="w-4 h-4" />
           {isBorrowing ? "Processing..." : "Deposit & Borrow"}

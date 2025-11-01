@@ -71,13 +71,13 @@ export function MintInvoice({
   if (mintedToken) {
     return (
       <div className="flex flex-col gap-4 p-6 border rounded-lg">
-        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+        <div className="flex items-center gap-2 text-purple-600">
           <CheckCircle className="w-5 h-5" />
           <h3 className="font-semibold">NFT Minted</h3>
         </div>
         <div className="text-sm space-y-1">
           <div>Token ID: {mintedToken.tokenId}</div>
-          <div className="font-mono text-xs break-all">
+          <div className="font-mono text-xs break-all text-gray-600">
             TX: {mintedToken.txHash}
           </div>
         </div>

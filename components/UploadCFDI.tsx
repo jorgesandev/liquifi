@@ -75,7 +75,7 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
       </div>
 
       {uploadedInvoice ? (
-        <div className="text-sm text-green-600 dark:text-green-400">
+        <div className="text-sm text-purple-600">
           Invoice ID: {uploadedInvoice}
         </div>
       ) : (
@@ -84,13 +84,13 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
             type="file"
             accept=".xml,.pdf"
             onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
           />
 
           <button
             onClick={handleUpload}
             disabled={!file || isUploading}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
           >
             <Upload className="w-4 h-4" />
             {isUploading ? "Uploading..." : "Upload"}
