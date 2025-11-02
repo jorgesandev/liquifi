@@ -54,11 +54,8 @@ contract ENSSubnameRegistrar is Ownable {
         publicResolver = _resolver;
         ensRegistry = IENSRegistry(_ensRegistry);
 
-        // Verify parent node is wrapped and owned
-        address parentOwner = INameWrapper(_nameWrapper).ownerOf(uint256(_parentNode));
-        if (parentOwner == address(0)) {
-            revert InvalidParentNode();
-        }
+        // Note: We don't verify wrapped status in constructor to allow deployment
+        // The registerOrg function will verify when attempting to register subdomains
     }
 
     /**

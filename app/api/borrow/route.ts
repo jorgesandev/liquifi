@@ -137,6 +137,25 @@ export async function POST(request: NextRequest) {
       console.log("📝 Using contract amount as source of truth");
     }
 
+    // Check if org has ENS registered (skip KYB if true)
+    const orgId = `org_${finalInvoice.id}`;
+    let kybData: any = null;
+    let ensLabel: string | null = null;
+    
+    // Get KYB data to check ENS status
+    const { data: kyb } = await supabase
+      .from("kyb_results")
+      .select("ens_registered, ens_label, status")
+      .eq("org_id", orgId)
+      .single();
+
+    if (kyb?.ens_registered && kyb?.ens_label) {
+      kybData = kyb;
+      ensLabel = kyb.ens_label;
+      console.log(`✅ Empresa verificada con ENS: ${ensLabel}.liquifidev.eth`);
+      console.log(`   KYB ya completado, omitiendo verificación adicional`);
+    }
+
     // Setup signer (provider already created above)
     const signer = new ethers.Wallet(DEPLOYER_PRIVATE_KEY, provider);
 
@@ -421,7 +440,7 @@ export async function POST(request: NextRequest) {
       borrowTx = await loanManager.initiateLoan(
         tokenId,
         borrowAmount,
-        "" // Empty ENS label for MVP
+        ensLabel || "" // Use ENS label if available, otherwise empty
       );
     } catch (error: any) {
       console.error("❌ Loan initiation failed:", error);

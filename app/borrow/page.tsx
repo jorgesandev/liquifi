@@ -7,6 +7,7 @@ import { UploadCFDI } from "@/components/UploadCFDI";
 import { MintInvoice } from "@/components/MintInvoice";
 import { VaultActions } from "@/components/VaultActions";
 import { LoanSummary } from "@/components/LoanSummary";
+import { KYBVerification } from "@/components/KYBVerification";
 import { ToastContainer, type Toast } from "@/components/Toast";
 import { useAccount } from "wagmi";
 import { CheckCircle2, Circle } from "lucide-react";
@@ -117,39 +118,27 @@ export default function BorrowPage() {
               />
             </div>
 
-            {/* Step 2.5: KYB Verification */}
+            {/* Step 2.5: KYB Verification with ENS */}
             {invoiceId && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-semibold mb-4 text-gray-900">Step 2.5: KYB Verification</h2>
                 <p className="text-sm text-gray-600 mb-4">
-                  Verifica tu organización para continuar con el proceso
+                  Verifica tu organización y registra tu subdominio ENS para continuar con el proceso
                 </p>
-                <button
-                  onClick={async () => {
-                    try {
-                      const response = await fetch("/api/kyb", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ org_id: `org_${invoiceId}` }),
-                      });
-                      const data = await response.json();
+                <KYBVerification
+                  orgId={`org_${invoiceId}`}
+                  invoiceId={invoiceId}
+                  onKYBComplete={(data) => {
+                    if (data.status === "approved" && data.ensRegistered) {
                       handleToast({
                         id: Date.now().toString(),
-                        message: `KYB Score: ${data.score}/100 (${data.status === "approved" ? "Aprobado" : "Pendiente"})`,
-                        type: data.status === "approved" ? "success" : "info",
-                      });
-                    } catch (error) {
-                      handleToast({
-                        id: Date.now().toString(),
-                        message: "KYB verification failed",
-                        type: "error",
+                        message: `✅ Empresa verificada: ${data.fullDomain}`,
+                        type: "success",
                       });
                     }
                   }}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
-                >
-                  Run KYB Check
-                </button>
+                  onToast={handleToast}
+                />
               </div>
             )}
 

@@ -790,8 +790,25 @@ export default function InvestPage() {
                       )}
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    Dirección: {address?.slice(0, 6)}...{address?.slice(-4)}
+                  <div className="text-xs text-gray-500 mt-2 space-y-1">
+                    <div>Dirección:</div>
+                    <div className="font-mono text-purple-600 break-all cursor-pointer hover:text-purple-700" 
+                         onClick={() => {
+                           if (address) {
+                             navigator.clipboard.writeText(address);
+                             handleToast({
+                               id: Date.now().toString(),
+                               message: "Dirección copiada al portapapeles",
+                               type: "success",
+                             });
+                           }
+                         }}
+                         title="Clic para copiar">
+                      {address || "No conectado"}
+                    </div>
+                    <div className="text-gray-400">
+                      (Clic para copiar - Usa esta dirección en MetaMask para ver el balance)
+                    </div>
                   </div>
                   {(!usdcBalance || parseFloat(usdcBalance.formatted) === 0) && (
                     <div className="mt-4">

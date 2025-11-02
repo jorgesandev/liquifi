@@ -7,6 +7,9 @@
     "deploy:arb": "hardhat run scripts/deploy-arb-sepolia.ts --network arbitrumSepolia",
     "deploy:arb-mockusdc": "hardhat run scripts/deploy-arb-sepolia-mockusdc.ts --network arbitrumSepolia",
     "deploy:arb-usdc": "hardhat run scripts/deploy-arb-sepolia-usdc.ts --network arbitrumSepolia",
+    "deploy:mainnet": "hardhat run scripts/deploy-mainnet.ts --network mainnet",
+    "approve-ens-contract": "hardhat run scripts/approve-ens-contract.ts --network mainnet",
+    "calculate-namehash": "ts-node scripts/calculate-namehash.ts",
     "deploy": "hardhat run scripts/deploy-arb-sepolia.ts --network arbitrumSepolia"
   },
   "devDependencies": {
