@@ -15,24 +15,109 @@ import { TrendingUp, DollarSign, PieChart, ArrowDownCircle, ArrowUpCircle, Histo
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_MOCK_USDC_ADDRESS || "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"; // Real USDC on Arbitrum Sepolia
 const VAULT_ADDRESS = process.env.NEXT_PUBLIC_VAULT_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000000";
 
-// ERC20 ABI (for approve and balance)
+// ERC20 ABI (for approve and balance) - Full JSON ABI format required by viem
 const ERC20_ABI = [
-  "function approve(address spender, uint256 amount) external returns (bool)",
-  "function allowance(address owner, address spender) external view returns (uint256)",
-  "function balanceOf(address account) external view returns (uint256)",
-  "function decimals() external view returns (uint8)",
+  {
+    name: "approve",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ type: "bool" }],
+  },
+  {
+    name: "allowance",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "decimals",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint8" }],
+  },
 ] as const;
 
-// ERC4626 Vault ABI
+// ERC4626 Vault ABI - Full JSON ABI format required by viem
 const VAULT_ABI = [
-  "function deposit(uint256 assets, address receiver) external returns (uint256 shares)",
-  "function redeem(uint256 shares, address receiver, address owner) external returns (uint256 assets)",
-  "function totalAssets() external view returns (uint256)",
-  "function totalSupply() external view returns (uint256)",
-  "function balanceOf(address account) external view returns (uint256)",
-  "function convertToShares(uint256 assets) external view returns (uint256)",
-  "function convertToAssets(uint256 shares) external view returns (uint256)",
-  "function asset() external view returns (address)",
+  {
+    name: "deposit",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "assets", type: "uint256" },
+      { name: "receiver", type: "address" },
+    ],
+    outputs: [{ name: "shares", type: "uint256" }],
+  },
+  {
+    name: "redeem",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "shares", type: "uint256" },
+      { name: "receiver", type: "address" },
+      { name: "owner", type: "address" },
+    ],
+    outputs: [{ name: "assets", type: "uint256" }],
+  },
+  {
+    name: "totalAssets",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "totalSupply",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "convertToShares",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "assets", type: "uint256" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "convertToAssets",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "shares", type: "uint256" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "asset",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "address" }],
+  },
 ] as const;
 
 export default function InvestPage() {
@@ -51,13 +136,19 @@ export default function InvestPage() {
   });
 
   // Read vault shares balance
-  const { data: vaultShares, refetch: refetchShares } = useReadContract({
+  const { 
+    data: vaultShares, 
+    refetch: refetchShares,
+    error: vaultSharesError,
+    isLoading: vaultSharesLoading 
+  } = useReadContract({
     address: VAULT_ADDRESS as `0x${string}`,
     abi: VAULT_ABI,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
     query: {
-      enabled: !!address && !!VAULT_ADDRESS,
+      enabled: !!address && !!VAULT_ADDRESS && VAULT_ADDRESS !== "0x0000000000000000000000000000000000000000",
+      refetchInterval: 5000, // Auto-refetch every 5 seconds to catch updates
     },
   });
 
@@ -71,8 +162,26 @@ export default function InvestPage() {
     },
   });
 
+  // Read total receivables (loans outstanding) from vault
+  const { data: totalReceivables } = useReadContract({
+    address: VAULT_ADDRESS as `0x${string}`,
+    abi: [
+      {
+        name: "totalReceivables",
+        type: "function",
+        stateMutability: "view",
+        inputs: [],
+        outputs: [{ type: "uint256" }],
+      },
+    ],
+    functionName: "totalReceivables",
+    query: {
+      enabled: !!VAULT_ADDRESS,
+    },
+  });
+
   // Read vault total supply (total shares)
-  const { data: totalSupply } = useReadContract({
+  const { data: totalSupply, refetch: refetchTotalSupply } = useReadContract({
     address: VAULT_ADDRESS as `0x${string}`,
     abi: VAULT_ABI,
     functionName: "totalSupply",
@@ -92,10 +201,63 @@ export default function InvestPage() {
     },
   });
 
-  // Write contracts
-  const { writeContract: approveWrite, isPending: isApproving, data: approveTxHash } = useWriteContract();
-  const { writeContract: depositWrite, isPending: isDepositing, data: depositTxHash } = useWriteContract();
-  const { writeContract: redeemWrite, isPending: isWithdrawing, data: withdrawTxHash } = useWriteContract();
+  // Write contracts with error handling
+  const { 
+    writeContract: approveWrite, 
+    isPending: isApproving, 
+    data: approveTxHash,
+    error: approveError,
+    reset: resetApprove
+  } = useWriteContract({
+    mutation: {
+      onError: (error) => {
+        console.error("Error al aprobar:", error);
+        handleToast({
+          id: Date.now().toString(),
+          message: `Error al aprobar: ${error.message || error.shortMessage || "Error desconocido"}`,
+          type: "error",
+        });
+      },
+    },
+  });
+
+  const { 
+    writeContract: depositWrite, 
+    isPending: isDepositing, 
+    data: depositTxHash,
+    error: depositError,
+    reset: resetDeposit
+  } = useWriteContract({
+    mutation: {
+      onError: (error) => {
+        console.error("Error al depositar:", error);
+        handleToast({
+          id: Date.now().toString(),
+          message: `Error al depositar: ${error.message || error.shortMessage || "Error desconocido"}`,
+          type: "error",
+        });
+      },
+    },
+  });
+
+  const { 
+    writeContract: redeemWrite, 
+    isPending: isWithdrawing, 
+    data: withdrawTxHash,
+    error: withdrawError,
+    reset: resetWithdraw
+  } = useWriteContract({
+    mutation: {
+      onError: (error) => {
+        console.error("Error al retirar:", error);
+        handleToast({
+          id: Date.now().toString(),
+          message: `Error al retirar: ${error.message || error.shortMessage || "Error desconocido"}`,
+          type: "error",
+        });
+      },
+    },
+  });
 
   // Wait for transaction receipts
   const { isLoading: isApproveConfirming } = useWaitForTransactionReceipt({
@@ -120,15 +282,64 @@ export default function InvestPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Handle approve transaction success
+  // Monitor approve errors
   useEffect(() => {
-    if (approveTxHash && !isApproveConfirming) {
+    if (approveError) {
+      console.error("Error de aprobación detectado:", approveError);
+    }
+  }, [approveError]);
+
+  // Monitor deposit errors
+  useEffect(() => {
+    if (depositError) {
+      console.error("Error de depósito detectado:", depositError);
+    }
+  }, [depositError]);
+
+  // Handle approve transaction success - automatically trigger deposit if amount is set
+  useEffect(() => {
+    if (approveTxHash && !isApproveConfirming && depositAmount && parseFloat(depositAmount) > 0 && address && VAULT_ADDRESS) {
+      handleToast({
+        id: Date.now().toString(),
+        message: "Aprobación exitosa, depositando...",
+        type: "success",
+      });
+      
+      // Refetch allowance and then trigger deposit
+      const triggerDeposit = async () => {
+        await refetchAllowance();
+        
+        // Small delay to ensure allowance is updated on-chain
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        try {
+          const amount = parseUnits(depositAmount, 6);
+          console.log("Ejecutando depósito automático después de aprobación...", { amount: amount.toString() });
+          
+          depositWrite({
+            address: VAULT_ADDRESS as `0x${string}`,
+            abi: VAULT_ABI,
+            functionName: "deposit",
+            args: [amount, address],
+          });
+        } catch (error: any) {
+          console.error("Error al depositar después de aprobar:", error);
+          handleToast({
+            id: Date.now().toString(),
+            message: error?.shortMessage || "Error al depositar después de aprobar",
+            type: "error",
+          });
+        }
+      };
+      
+      triggerDeposit();
+    } else if (approveTxHash && !isApproveConfirming) {
       handleToast({
         id: Date.now().toString(),
         message: "Aprobación exitosa",
         type: "success",
       });
-      setTimeout(() => refetchAllowance(), 2000); // Refetch after a delay
+      setTimeout(() => refetchAllowance(), 2000);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [approveTxHash, isApproveConfirming]);
@@ -136,17 +347,37 @@ export default function InvestPage() {
   // Handle deposit transaction success
   useEffect(() => {
     if (depositTxHash && !isDepositConfirming) {
+      console.log("✅ Deposit transaction confirmed! Hash:", depositTxHash);
       handleToast({
         id: Date.now().toString(),
         message: "Depósito exitoso",
         type: "success",
       });
       setDepositAmount("");
+      
+      // Multiple refetches with delays to ensure we catch the update
+      console.log("🔄 Refreshing balances and shares...");
       setTimeout(() => {
+        console.log("⏰ First refetch (2s delay)...");
         refetchBalance();
         refetchShares();
         refetchTotalAssets();
-      }, 2000); // Refetch after a delay
+        refetchTotalSupply();
+      }, 2000);
+      
+      setTimeout(() => {
+        console.log("⏰ Second refetch (5s delay)...");
+        refetchShares();
+        refetchTotalAssets();
+        refetchTotalSupply();
+      }, 5000);
+      
+      setTimeout(() => {
+        console.log("⏰ Final refetch (10s delay)...");
+        refetchShares();
+        refetchTotalAssets();
+        refetchTotalSupply();
+      }, 10000);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depositTxHash, isDepositConfirming]);
@@ -169,36 +400,28 @@ export default function InvestPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [withdrawTxHash, isWithdrawConfirming]);
 
-  const handleApprove = async () => {
-    if (!isConnected || !depositAmount || parseFloat(depositAmount) <= 0) {
-      handleToast({
-        id: Date.now().toString(),
-        message: "Por favor ingresa un monto válido",
-        type: "error",
-      });
-      return;
-    }
-
-    try {
-      const amount = parseUnits(depositAmount, 6); // USDC has 6 decimals
-      
-      await approveWrite({
-        address: USDC_ADDRESS as `0x${string}`,
-        abi: ERC20_ABI,
-        functionName: "approve",
-        args: [VAULT_ADDRESS as `0x${string}`, amount],
-      });
-    } catch (error: any) {
-      handleToast({
-        id: Date.now().toString(),
-        message: error?.shortMessage || "Error al aprobar",
-        type: "error",
-      });
-    }
-  };
-
+  // Simplified: Combined approve + deposit flow
   const handleDeposit = async () => {
-    if (!isConnected || !depositAmount || parseFloat(depositAmount) <= 0) {
+    if (!isConnected || !address) {
+      handleToast({
+        id: Date.now().toString(),
+        message: "Por favor conecta tu wallet",
+        type: "error",
+      });
+      return;
+    }
+
+    // Check if user is on the correct chain
+    if (chain?.id !== 421614) {
+      handleToast({
+        id: Date.now().toString(),
+        message: "Por favor cambia a Arbitrum Sepolia",
+        type: "error",
+      });
+      return;
+    }
+
+    if (!depositAmount || parseFloat(depositAmount) <= 0) {
       handleToast({
         id: Date.now().toString(),
         message: "Por favor ingresa un monto válido",
@@ -207,38 +430,76 @@ export default function InvestPage() {
       return;
     }
 
-    if (!USDC_ADDRESS || !VAULT_ADDRESS) {
+    if (!USDC_ADDRESS || !VAULT_ADDRESS || USDC_ADDRESS === "0x0000000000000000000000000000000000000000" || VAULT_ADDRESS === "0x0000000000000000000000000000000000000000") {
       handleToast({
         id: Date.now().toString(),
-        message: "Contratos no configurados",
+        message: "Contratos no configurados. Verifica las variables de entorno.",
         type: "error",
       });
+      console.error("USDC_ADDRESS:", USDC_ADDRESS, "VAULT_ADDRESS:", VAULT_ADDRESS);
       return;
     }
+
+    // Reset any previous errors
+    resetApprove();
+    resetDeposit();
 
     try {
       const amount = parseUnits(depositAmount, 6); // USDC has 6 decimals
       const currentAllowance = allowance || 0n;
 
+      // Step 1: Approve if needed
       if (currentAllowance < amount) {
+        console.log("Aprobando USDC...", { 
+          amount: amount.toString(), 
+          currentAllowance: currentAllowance.toString(),
+          usdcAddress: USDC_ADDRESS,
+          vaultAddress: VAULT_ADDRESS
+        });
+        
         handleToast({
           id: Date.now().toString(),
-          message: "Primero debes aprobar el monto",
-          type: "error",
+          message: "Confirma la transacción en tu wallet para aprobar USDC",
+          type: "info",
         });
+
+        // Call approve - this will trigger MetaMask prompt
+        approveWrite({
+          address: USDC_ADDRESS as `0x${string}`,
+          abi: ERC20_ABI,
+          functionName: "approve",
+          args: [VAULT_ADDRESS as `0x${string}`, amount],
+        });
+
+        // Note: We return here and let useEffect handle the deposit after approval
         return;
       }
 
-      await depositWrite({
+      // Step 2: Deposit
+      console.log("Depositando USDC...", { 
+        amount: amount.toString(), 
+        vaultAddress: VAULT_ADDRESS,
+        userAddress: address
+      });
+
+      handleToast({
+        id: Date.now().toString(),
+        message: "Confirma la transacción en tu wallet para depositar",
+        type: "info",
+      });
+
+      depositWrite({
         address: VAULT_ADDRESS as `0x${string}`,
         abi: VAULT_ABI,
         functionName: "deposit",
-        args: [amount, address!],
+        args: [amount, address],
       });
     } catch (error: any) {
+      console.error("Error en handleDeposit:", error);
+      const errorMessage = error?.shortMessage || error?.message || "Error desconocido";
       handleToast({
         id: Date.now().toString(),
-        message: error?.shortMessage || "Error al depositar",
+        message: `Error: ${errorMessage}`,
         type: "error",
       });
     }
@@ -305,7 +566,10 @@ export default function InvestPage() {
       })
     : "0.00";
   
-  const totalBorrowed = 0; // TODO: Get from LoanManager
+  // Get total borrowed from vault's totalReceivables
+  const totalBorrowed = totalReceivables
+    ? parseFloat(formatUnits(totalReceivables, 6))
+    : 0;
   const totalBorrowedFormatted = totalBorrowed.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -325,12 +589,110 @@ export default function InvestPage() {
   
   const apy = "10.0"; // Fixed 10% APY for demo
 
-  const userSharesFormatted = vaultShares
-    ? parseFloat(formatUnits(vaultShares, 18)).toLocaleString(undefined, {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4,
+  // Format user shares (ERC4626 uses 18 decimals for shares)
+  // Note: The raw value is in wei (smallest unit), so we need to divide by 10^18
+  const userSharesRaw = vaultShares || 0n;
+  const userSharesValue = parseFloat(formatUnits(userSharesRaw, 18));
+  
+  // Format shares with appropriate precision
+  // Show more decimals for very small values to make them visible
+  const userSharesFormatted = userSharesValue > 0
+    ? userSharesValue < 0.000001  // Less than 0.000001 shares
+      ? userSharesValue.toFixed(18).replace(/\.?0+$/, "") // Show up to 18 decimals, remove trailing zeros
+      : userSharesValue < 0.01
+      ? userSharesValue.toFixed(12).replace(/\.?0+$/, "") // Show 12 decimals for medium small values
+      : userSharesValue.toLocaleString(undefined, {
+          minimumFractionDigits: 8,  // Increased from 6 to 8 for better visibility
+          maximumFractionDigits: 12,  // Increased from 6 to 12 max
+        })
+    : "0.000000000000000000";  // Show 18 decimal places when zero
+  
+  // Also calculate what assets these shares represent
+  const userAssetsFromShares = vaultShares && totalAssets && totalSupply && totalSupply > 0n
+    ? (vaultShares * totalAssets) / totalSupply
+    : 0n;
+  
+  const userAssetsFormatted = userAssetsFromShares
+    ? parseFloat(formatUnits(userAssetsFromShares, 6)).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
       })
-    : "0.0000";
+    : "0.00";
+  
+  // Estimate deposit amount: if totalAssets increased significantly, someone deposited
+  // Check if vault has assets but user shares are 0 - might be a display delay
+  const vaultHasAssets = totalAssets && totalAssets > 0n;
+  const vaultHasSupply = totalSupply && totalSupply > 0n;
+  
+  // If vault has assets/supply but user has no shares visible, check if it's a timing issue
+  // This is a heuristic - if vault grew but shares aren't showing, likely just deposited
+  const likelyJustDeposited = userSharesRaw === 0n && vaultHasAssets && vaultHasSupply;
+  
+  // Debug: Log vault shares to console with more details
+  useEffect(() => {
+    if (address) {
+      console.log("🔍 Vault Shares Debug - Full Details:", {
+        userAddress: address,
+        vaultAddress: VAULT_ADDRESS,
+        vaultSharesRaw: vaultShares?.toString() || "undefined",
+        vaultSharesValue: userSharesValue,
+        vaultSharesFormatted: userSharesFormatted,
+        totalAssets: totalAssets?.toString() || "undefined",
+        totalAssetsFormatted: totalAssetsFormatted,
+        totalSupply: totalSupply?.toString() || "undefined",
+        userAssetsFromShares: userAssetsFromShares?.toString() || "undefined",
+        likelyJustDeposited,
+        vaultHasAssets,
+        vaultHasSupply,
+        vaultSharesError: vaultSharesError?.message,
+        vaultSharesLoading,
+      });
+      
+      // Check if we should query the vault directly
+      if (vaultShares === 0n || vaultShares === undefined) {
+        console.log("⚠️ No shares detected. Possible reasons:");
+        console.log("   1. Deposit transaction not confirmed yet");
+        console.log("   2. Wrong address being queried");
+        console.log("   3. Shares are very small (need to check raw value)");
+        console.log("   4. Query issue with wagmi");
+        console.log("   5. Address mismatch between deposit receiver and query");
+        console.log("");
+        console.log("🔍 Query Details:", {
+          queryAddress: address,
+          vaultAddress: VAULT_ADDRESS,
+          sharesError: vaultSharesError?.message,
+          sharesLoading: vaultSharesLoading,
+        });
+        
+        // Verify the address that received shares matches the query address
+        console.log("💡 Tip: Check the deposit transaction receipt to see which address received the shares");
+        console.log("   The deposit function signature is: deposit(uint256 assets, address receiver)");
+        console.log(`   You deposited to: ${address}`);
+        console.log(`   We're querying balanceOf for: ${address}`);
+        
+        // Try to manually verify by checking if we can query again
+        if (VAULT_ADDRESS && address) {
+          console.log("🔄 Attempting manual query verification...");
+          refetchShares();
+        }
+      } else {
+        console.log("✅ Shares found! Raw value:", vaultShares.toString());
+        console.log("   Formatted:", userSharesFormatted);
+      }
+      
+      // Auto-refetch if we likely just deposited but shares aren't showing
+      if (likelyJustDeposited) {
+        console.log("🔄 Auto-refreshing shares after deposit...");
+        const timeoutId = setTimeout(() => {
+          console.log("⏰ Refreshing shares after 3s delay...");
+          refetchShares();
+          refetchTotalSupply();
+        }, 3000); // Wait 3 seconds for block confirmation
+        
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [vaultShares, address, userSharesFormatted, userSharesValue, userAssetsFormatted, userAssetsFromShares, totalAssets, totalSupply, totalAssetsFormatted, likelyJustDeposited, vaultHasAssets, vaultHasSupply, refetchShares, refetchTotalSupply]);
 
   const usdcBalanceFormatted = usdcBalance
     ? parseFloat(usdcBalance.formatted).toLocaleString(undefined, {
@@ -339,9 +701,10 @@ export default function InvestPage() {
       })
     : "0.00";
 
-  const needsApproval = allowance && depositAmount
+  // Check if approval is needed
+  const needsApproval = allowance !== undefined && depositAmount && parseFloat(depositAmount) > 0
     ? allowance < parseUnits(depositAmount, 6)
-    : true;
+    : false;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -390,9 +753,41 @@ export default function InvestPage() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-600 mb-1">Shares en Vault</div>
-                      <div className="text-2xl font-bold text-purple-600">
-                        {userSharesFormatted} LQFv
-                      </div>
+                      {userSharesValue > 0 ? (
+                        <>
+                          <div className="text-2xl font-bold text-purple-600 font-mono text-lg break-all">
+                            {userSharesFormatted} LQFv
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            ≈ {userAssetsFormatted} USDC en assets
+                          </div>
+                        </>
+                      ) : likelyJustDeposited ? (
+                        <>
+                          <div className="text-2xl font-bold text-purple-600">
+                            Depósito exitoso ✓
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Las shares se actualizarán en unos segundos...
+                          </div>
+                          <div className="text-xs text-blue-600 mt-1 cursor-pointer" onClick={() => {
+                            refetchShares();
+                            refetchTotalAssets();
+                            refetchTotalSupply();
+                          }}>
+                            🔄 Refrescar ahora
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-2xl font-bold text-purple-600 font-mono text-lg">
+                            {userSharesFormatted} LQFv
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Sin shares en el vault
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 mt-2">
@@ -435,38 +830,37 @@ export default function InvestPage() {
                       <div className="text-sm text-gray-600 mb-2">APY Estimado:</div>
                       <div className="text-2xl font-bold text-purple-600">{apy}%</div>
                     </div>
-                    <div className="flex gap-2">
-                      {needsApproval && depositAmount && parseFloat(depositAmount) > 0 ? (
-                        <button
-                          onClick={handleApprove}
-                          disabled={isApprovingFinal || !depositAmount}
-                          className="flex-1 px-6 py-3 bg-purple-400 text-white rounded-lg font-semibold hover:bg-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-                        >
-                        {isApprovingFinal ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                            Aprobando...
-                          </>
-                        ) : (
-                          "Aprobar USDC"
-                        )}
-                        </button>
-                      ) : null}
-                      <button
-                        onClick={handleDeposit}
-                        disabled={!depositAmount || isDepositingFinal || needsApproval}
-                        className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-                      >
-                        {isDepositingFinal ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                            Depositando...
-                          </>
-                        ) : (
-                          "Depositar"
-                        )}
-                      </button>
-                    </div>
+                    <button
+                      onClick={handleDeposit}
+                      disabled={!depositAmount || isDepositingFinal || isApprovingFinal || parseFloat(depositAmount) <= 0}
+                      className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      {isApprovingFinal ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          {isApproving && !approveTxHash ? "Esperando confirmación en MetaMask..." : "Aprobando..."}
+                        </>
+                      ) : isDepositingFinal ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          {isDepositing && !depositTxHash ? "Esperando confirmación en MetaMask..." : "Depositando..."}
+                        </>
+                      ) : needsApproval ? (
+                        "Aprobar y Depositar"
+                      ) : (
+                        "Depositar"
+                      )}
+                    </button>
+                    {needsApproval && depositAmount && (
+                      <p className="text-xs text-gray-500 text-center">
+                        Primero se aprobará el monto, luego se depositará automáticamente
+                      </p>
+                    )}
+                    {(approveError || depositError) && (
+                      <div className="text-xs text-red-600 text-center mt-2">
+                        Error: {approveError?.message || depositError?.message || "Error desconocido"}
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -10,6 +10,7 @@
     "compile": "cd contracts && npx hardhat compile",
     "deploy": "cd contracts && npx hardhat run scripts/deploy-arb-sepolia.ts --network arbitrumSepolia",
     "deploy:arb-usdc": "cd contracts && npx hardhat run scripts/deploy-arb-sepolia-usdc.ts --network arbitrumSepolia",
+    "deploy:arb-mockusdc": "cd contracts && npx hardhat run scripts/deploy-arb-sepolia-mockusdc.ts --network arbitrumSepolia",
     "copy-abis": "node scripts/copy-abis.js",
     "generate-wallet": "node scripts/generate-wallet.js",
     "verify-tx": "node scripts/verify-transaction.js",
