@@ -2,6 +2,16 @@
 
 La nueva forma de acceso a capital que llegó para quedarse. Tecnología Web3 para redefinir el factoraje.
 
+## 📜 Contratos Inteligentes
+
+Estos son los contratos que usa LiquiFi:
+
+- **LiquiFiINFT** - `0x07d0D37cb4cb97ef60c0f881623025b1a2104Eb6` (Arbitrum Sepolia) - Tokeniza facturas como NFTs ERC-721.
+- **LiquidityVault** - `0xF831fafDEc6DF2C21830052CDFD504AA759DD850` (Arbitrum Sepolia) - Vault ERC-4626 que gestiona la liquidez del protocolo.
+- **LoanManager** - `0xbF7C1287a064a81aa02612562236CdA6A7d614C3` (Arbitrum Sepolia) - Gestiona préstamos con LTV del 70% usando NFTs como colateral.
+- **ENSSubnameRegistrar** - `0xa6EA99E4b6eEf5284823DB4A7ad2882480e4cd52` (Ethereum Mainnet) - Registra subdominios ENS para empresas verificadas.
+- **USDC** - `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d` (Arbitrum Sepolia) - Token USDC real de Circle usado como asset del vault.
+
 ## 🎯 Visión
 
 LiquiFi activa el capital congelado de las facturas a través de una plataforma de finanzas descentralizadas que tokeniza facturas. Lo que antes era un documento esperando ser cobrado, hoy es un activo líquido.
