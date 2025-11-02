@@ -115,7 +115,7 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
   if (!invoice) return null;
 
   const invoiceAmount = invoice.amount;
-  // 🎯 DEMO: Hardcoded borrow amount (0.05 mUSDC)
+  // 🎯 DEMO: Hardcoded borrow amount (0.05 USDC)
   const borrowAmount = 0.05; // Fixed for demo
   const isApproved = kyb?.status === "approved" || kyb?.score >= 80;
   const isInvoiceValidated = invoice.status === "minted" || invoice.nft_token_id !== null;
@@ -235,7 +235,7 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Monto del Préstamo:</span>
               <span className="font-bold text-purple-600">
-                {borrowAmount.toFixed(2)} mUSDC
+                {borrowAmount.toFixed(2)} USDC
               </span>
             </div>
             <div className="text-xs text-gray-500 italic text-right">

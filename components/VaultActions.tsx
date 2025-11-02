@@ -55,7 +55,7 @@ export function VaultActions({
 
       onToast({
         id: Date.now().toString(),
-        message: `Préstamo aprobado: ${(Number(data.amount) / 1e6).toLocaleString()} mUSDC`,
+        message: `Préstamo aprobado: ${(Number(data.amount) / 1e6).toLocaleString()} USDC`,
         type: "success",
       });
     } catch (error: any) {

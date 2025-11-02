@@ -127,21 +127,21 @@ export async function POST(request: NextRequest) {
       invoiceData = null;
     }
 
-    // 🎯 DEMO: Hardcoded borrow amount of 0.05 mUSDC (50,000 units with 6 decimals)
+    // 🎯 DEMO: Hardcoded borrow amount of 0.05 USDC (50,000 units with 6 decimals)
     // In production, this would be calculated as: invoiceAmount × 70% LTV
     const invoiceAmount = invoiceData 
       ? BigInt(invoiceData.amount.toString())  // From contract (most reliable)
       : BigInt(Math.floor(Number(invoice.amount))); // Fallback: from Supabase
     
-    // Demo: Always borrow 0.05 mUSDC (50,000 units = 0.05 * 10^6)
-    const borrowAmount = BigInt(50000); // 0.05 mUSDC with 6 decimals
+    // Demo: Always borrow 0.05 USDC (50,000 units = 0.05 * 10^6)
+    const borrowAmount = BigInt(50000); // 0.05 USDC with 6 decimals
     
     console.log("💰 Borrowing (DEMO - fixed amount):", {
       tokenId,
       invoiceAmount: invoiceAmount.toString(),
-      borrowAmount: borrowAmount.toString(), // 0.05 mUSDC (50,000 units)
+      borrowAmount: borrowAmount.toString(), // 0.05 USDC (50,000 units)
       borrower,
-      note: "Demo mode: fixed borrow amount of 0.05 mUSDC"
+      note: "Demo mode: fixed borrow amount of 0.05 USDC"
     });
 
     // Check vault liquidity before attempting loan
