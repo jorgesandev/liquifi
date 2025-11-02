@@ -27,7 +27,7 @@ export function MintInvoice({
     if (!invoiceId || !address) {
       onToast({
         id: Date.now().toString(),
-        message: "Please upload an invoice first and connect your wallet",
+        message: "Por favor sube una factura primero y conecta tu wallet",
         type: "error",
       });
       return;
@@ -45,7 +45,7 @@ export function MintInvoice({
       });
 
       if (!response.ok) {
-        throw new Error("Mint failed");
+        throw new Error("Error al mintear");
       }
 
       const data = await response.json();
@@ -54,13 +54,13 @@ export function MintInvoice({
 
       onToast({
         id: Date.now().toString(),
-        message: "Invoice NFT minted successfully",
+        message: "NFT de factura minteado exitosamente",
         type: "success",
       });
     } catch (error) {
       onToast({
         id: Date.now().toString(),
-        message: "Failed to mint invoice NFT",
+        message: "Error al mintear NFT de factura",
         type: "error",
       });
     } finally {
@@ -71,13 +71,13 @@ export function MintInvoice({
   if (mintedToken) {
     return (
       <div className="flex flex-col gap-4 p-6 border rounded-lg">
-        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+        <div className="flex items-center gap-2 text-purple-600">
           <CheckCircle className="w-5 h-5" />
-          <h3 className="font-semibold">NFT Minted</h3>
+          <h3 className="font-semibold">NFT Minteado</h3>
         </div>
         <div className="text-sm space-y-1">
-          <div>Token ID: {mintedToken.tokenId}</div>
-          <div className="font-mono text-xs break-all">
+          <div>ID del Token: {mintedToken.tokenId}</div>
+          <div className="font-mono text-xs break-all text-gray-600">
             TX: {mintedToken.txHash}
           </div>
         </div>
@@ -89,7 +89,7 @@ export function MintInvoice({
     <div className="flex flex-col gap-4 p-6 border rounded-lg">
       <div className="flex items-center gap-2">
         <Coins className="w-5 h-5" />
-        <h3 className="font-semibold">Mint Invoice NFT</h3>
+        <h3 className="font-semibold">Mintear NFT de Factura</h3>
       </div>
 
       <button
@@ -98,7 +98,7 @@ export function MintInvoice({
         className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       >
         <Coins className="w-4 h-4" />
-        {isMinting ? "Minting..." : "Mint NFT"}
+        {isMinting ? "Minteando..." : "Mintear NFT"}
       </button>
     </div>
   );

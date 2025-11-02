@@ -26,7 +26,7 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
     if (!file || !address) {
       onToast({
         id: Date.now().toString(),
-        message: "Please select a file and connect your wallet",
+        message: "Por favor selecciona un archivo y conecta tu wallet",
         type: "error",
       });
       return;
@@ -44,7 +44,7 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        throw new Error("Error al subir");
       }
 
       const data = await response.json();
@@ -53,13 +53,13 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
 
       onToast({
         id: Date.now().toString(),
-        message: "Invoice uploaded successfully",
+        message: "Factura subida exitosamente",
         type: "success",
       });
     } catch (error) {
       onToast({
         id: Date.now().toString(),
-        message: "Failed to upload invoice",
+        message: "Error al subir factura",
         type: "error",
       });
     } finally {
@@ -71,12 +71,12 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
     <div className="flex flex-col gap-4 p-6 border rounded-lg">
       <div className="flex items-center gap-2">
         <FileText className="w-5 h-5" />
-        <h3 className="font-semibold">Upload CFDI Invoice</h3>
+        <h3 className="font-semibold">Subir Factura CFDI</h3>
       </div>
 
       {uploadedInvoice ? (
-        <div className="text-sm text-green-600 dark:text-green-400">
-          Invoice ID: {uploadedInvoice}
+        <div className="text-sm text-purple-600">
+          ID de Factura: {uploadedInvoice}
         </div>
       ) : (
         <>
@@ -84,16 +84,16 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
             type="file"
             accept=".xml,.pdf"
             onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
           />
 
           <button
             onClick={handleUpload}
             disabled={!file || isUploading}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
           >
             <Upload className="w-4 h-4" />
-            {isUploading ? "Uploading..." : "Upload"}
+            {isUploading ? "Subiendo..." : "Subir"}
           </button>
         </>
       )}
