@@ -114,6 +114,15 @@ contract LoanManager is Ownable, ReentrancyGuard {
         uint256 maxBorrow = (invoice.amount * MAX_LTV_BPS) / 10000;
         if (requestedAmount > maxBorrow) revert InsufficientLTV();
 
+        // Check if tokenId already has an active loan
+        if (tokenToLoanId[tokenId] != 0) {
+            uint256 existingLoanId = tokenToLoanId[tokenId];
+            Loan storage existingLoan = loans[existingLoanId];
+            if (existingLoan.active) {
+                revert InvalidLoan(); // Token already has active loan
+            }
+        }
+
         // Transfer NFT to vault (as collateral)
         inft.safeTransferFrom(msg.sender, address(vault), tokenId);
 

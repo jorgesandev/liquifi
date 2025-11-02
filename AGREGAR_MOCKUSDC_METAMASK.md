@@ -13,7 +13,7 @@ MockUSDC (Asset): 0x...
 
 **Dirección actual (más reciente):**
 ```
-0xd0ef1ecff05d6e8690C524D1db24908d2FF73467
+0x3fD487CbdC35dDbD402babdDD06Ce80327Dc5fd7
 ```
 
 Copia esa dirección.

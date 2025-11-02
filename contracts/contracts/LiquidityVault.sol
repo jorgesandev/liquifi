@@ -3,12 +3,14 @@ pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract LiquidityVault is ERC4626, Ownable, ReentrancyGuard, IERC721Receiver {
+    using SafeERC20 for IERC20;
     address public loanManager;
     uint256 public totalReceivables;
 
@@ -55,7 +57,9 @@ contract LiquidityVault is ERC4626, Ownable, ReentrancyGuard, IERC721Receiver {
         uint256 available = IERC20(asset()).balanceOf(address(this));
         if (available < amount) revert InsufficientLiquidity();
 
-        IERC20(asset()).transfer(borrower, amount);
+        // Use SafeERC20 for secure token transfer
+        // Note: safeTransfer will revert if transfer fails (e.g., insufficient balance)
+        IERC20(asset()).safeTransfer(borrower, amount);
         totalReceivables += amount;
 
         emit LoanOut(borrower, amount);
@@ -67,8 +71,8 @@ contract LiquidityVault is ERC4626, Ownable, ReentrancyGuard, IERC721Receiver {
      * @param amount The amount being repaid
      */
     function recordRepay(address payer, uint256 amount) external onlyLoanManager nonReentrant {
-        // Transfer from payer to vault
-        IERC20(asset()).transferFrom(payer, address(this), amount);
+        // Transfer from payer to vault using SafeERC20
+        IERC20(asset()).safeTransferFrom(payer, address(this), amount);
 
         // Decrease receivables (LoanManager should track which loans are being repaid)
         // For MVP, we decrease by the full amount (LoanManager handles the accounting)

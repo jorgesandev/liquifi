@@ -57,7 +57,7 @@ export default function Home() {
               <span className="block text-purple-600">
                 Descentralizado
               </span>
-            </h1>
+          </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Convierte tus facturas en NFTs, obtén liquidez instantánea o invierte
               en un vault tokenizado. Todo en Arbitrum Sepolia.
@@ -235,7 +235,7 @@ export default function Home() {
             <Link
               href="/invest"
               className="inline-flex items-center gap-2 px-8 py-4 bg-purple-400 text-white rounded-lg font-semibold hover:bg-purple-500 transition-colors shadow-lg"
-            >
+          >
               Invertir
               <ArrowRight className="w-5 h-5" />
             </Link>

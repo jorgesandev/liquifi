@@ -5,6 +5,8 @@
     "compile": "hardhat compile",
     "deploy:sepolia": "hardhat run scripts/deploy-sepolia.ts --network sepolia",
     "deploy:arb": "hardhat run scripts/deploy-arb-sepolia.ts --network arbitrumSepolia",
+    "deploy:arb-mockusdc": "hardhat run scripts/deploy-arb-sepolia-mockusdc.ts --network arbitrumSepolia",
+    "deploy:arb-usdc": "hardhat run scripts/deploy-arb-sepolia-usdc.ts --network arbitrumSepolia",
     "deploy": "hardhat run scripts/deploy-arb-sepolia.ts --network arbitrumSepolia"
   },
   "devDependencies": {

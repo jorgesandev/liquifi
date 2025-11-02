@@ -114,9 +114,16 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
 
   if (!invoice) return null;
 
-  const invoiceAmount = invoice.amount;
-  // 🎯 DEMO: Hardcoded borrow amount (0.05 USDC)
-  const borrowAmount = 0.05; // Fixed for demo
+  // Invoice amount in Supabase is stored as integer (e.g., 50000 = 50000 units)
+  // When minted to contract, it's sent as BigInt directly (with 6 decimals: 50000 = 0.05 USDC)
+  // For display: invoice.amount / 1e6 = USDC amount
+  const invoiceAmountInUSDC = invoice.amount / 1e6; // Convert base units to USDC
+  const invoiceAmount = invoiceAmountInUSDC; // For display
+  
+  // Calculate loan amount based on 70% LTV
+  const maxLoanAmountInUSDC = invoiceAmountInUSDC * 0.70; // 70% LTV
+  const borrowAmount = maxLoanAmountInUSDC;
+  
   const isApproved = kyb?.status === "approved" || kyb?.score >= 80;
   const isInvoiceValidated = invoice.status === "minted" || invoice.nft_token_id !== null;
   const isLoanActive = loan?.status === "active";
@@ -139,7 +146,7 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
               Monto de Factura:
             </span>
             <span className="font-semibold text-gray-900">
-              ${invoiceAmount.toLocaleString()} MXN
+              ${invoiceAmount.toFixed(6)} USDC
             </span>
           </div>
 
@@ -235,11 +242,11 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Monto del Préstamo:</span>
               <span className="font-bold text-purple-600">
-                {borrowAmount.toFixed(2)} USDC
+                {borrowAmount.toFixed(6)} USDC
               </span>
             </div>
             <div className="text-xs text-gray-500 italic text-right">
-              * Demo: monto fijo
+              * Calculado al 70% LTV del valor de la factura
             </div>
           </div>
 

@@ -38,10 +38,34 @@ export async function POST(request: NextRequest) {
     // Parse basic invoice metadata (simplified - in production, parse XML properly)
     // For MVP, we'll extract what we can or use defaults
     const orgId = "org_" + Date.now();
-    const amount = Math.floor(Math.random() * 100000) + 10000; // Mock amount
+    
+    // Generate deterministic amount between 40,000 and 200,000 USDC based on hash
+    // This ensures same PDF always generates same amount (for consistency)
+    // IMPORTANT: Store as units with 6 decimals
+    // For example: 50000 USDC = 50000 * 1e6 = 50,000,000 units
+    // So 40,000 - 200,000 USDC = 40,000,000,000 - 200,000,000,000 units
+    const minAmountUSDC = 40000; // 40,000 USDC
+    const maxAmountUSDC = 200000; // 200,000 USDC
+    
+    // Use hash as seed for deterministic but "random-looking" amounts
+    // This ensures same PDF → same hash → same amount (consistent)
+    const hashSeed = parseInt(cfdiHash.substring(0, 12), 16); // Use first 12 hex chars as seed
+    const amountUSDC = minAmountUSDC + (hashSeed % (maxAmountUSDC - minAmountUSDC + 1));
+    const amount = Math.floor(amountUSDC * 1000000); // Convert to units with 6 decimals
+    
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30); // 30 days from now
-    const debtorName = "Debtor Corp " + Date.now();
+    
+    // Deterministic debtor selection based on hash (for consistency)
+    // Same PDF → same hash → same debtor
+    const debtors = [
+      "Walmart SA de CV",
+      "Costco Wholesale México",
+      "Pemex Transformación Industrial"
+    ];
+    // Use different part of hash for debtor selection
+    const debtorSeed = parseInt(cfdiHash.substring(12, 16), 16); // Next 4 hex chars
+    const debtorName = debtors[debtorSeed % debtors.length];
 
     console.log("💾 Preparing to insert invoice:", { orgId, amount, debtorName });
 

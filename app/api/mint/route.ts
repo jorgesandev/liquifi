@@ -25,6 +25,7 @@ const ALCHEMY_API_URL = alchemyPolicyId
 // INFT Contract ABI
 const INFT_ABI = [
   "function mint(address to, string memory tokenURI) external returns (uint256)",
+  "function mintInvoice(address to, string memory debtor, uint256 amount, uint256 dueDate, string memory metadataURI) external returns (uint256)",
   "function mintWithMetadata(address to, string memory tokenURI, string memory invoiceHash, uint256 amount) external returns (uint256)",
   "function owner() external view returns (address)",
   "function totalSupply() external view returns (uint256)",
@@ -107,6 +108,11 @@ export async function POST(request: NextRequest) {
     const tokenURIBase64 = `data:application/json;base64,${Buffer.from(tokenURI).toString("base64")}`;
     const invoiceAmount = BigInt(Math.floor(Number(invoice.amount)));
     
+    // Parse due date (expects timestamp in seconds)
+    const dueDate = invoice.due_date 
+      ? Math.floor(new Date(invoice.due_date).getTime() / 1000)
+      : Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60); // Default: 30 days from now
+    
     // Get current total supply to predict tokenId
     let currentSupply = 0n;
     try {
@@ -116,20 +122,23 @@ export async function POST(request: NextRequest) {
       console.warn("Could not get totalSupply:", err);
     }
 
-    // Mint NFT with metadata
+    // Mint NFT with full invoice data using mintInvoice (includes debtor name)
     console.log("Minting NFT with params:", {
       to: signer.address,
+      debtor: invoice.debtor_name || "Unknown",
       amount: invoiceAmount.toString(),
+      dueDate: dueDate,
       hash: invoice.cfdi_hash.substring(0, 16) + "...",
     });
 
     let mintTx;
     try {
-      mintTx = await contract.mintWithMetadata(
+      mintTx = await contract.mintInvoice(
         signer.address,
-        tokenURIBase64,
-        invoice.cfdi_hash,
-        invoiceAmount
+        invoice.debtor_name || "Unknown Debtor",
+        invoiceAmount,
+        BigInt(dueDate),
+        tokenURIBase64
       );
     } catch (error: any) {
       console.error("Minting transaction failed:", error);
