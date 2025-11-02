@@ -5,7 +5,8 @@ import { Navigation } from "@/components/Navigation";
 import { ConnectWallet } from "@/components/ConnectWallet";
 import { RequestMUSDC } from "@/components/RequestMUSDC";
 import { ToastContainer, type Toast } from "@/components/Toast";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBalance, useSwitchChain } from "wagmi";
+import { arbitrumSepolia } from "wagmi/chains";
 import { parseUnits, formatUnits } from "viem";
 import { TrendingUp, DollarSign, PieChart, ArrowDownCircle, ArrowUpCircle, History, RefreshCw } from "lucide-react";
 
@@ -122,6 +123,7 @@ const VAULT_ABI = [
 
 export default function InvestPage() {
   const { address, isConnected, chain } = useAccount();
+  const { switchChain } = useSwitchChain();
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -411,14 +413,28 @@ export default function InvestPage() {
       return;
     }
 
-    // Check if user is on the correct chain
-    if (chain?.id !== 421614) {
-      handleToast({
-        id: Date.now().toString(),
-        message: "Por favor cambia a Arbitrum Sepolia",
-        type: "error",
-      });
-      return;
+    // Check if user is on the correct chain and switch if needed
+    if (chain?.id !== arbitrumSepolia.id) {
+      // If chain is defined but wrong, try to switch
+      if (chain && switchChain) {
+        try {
+          await switchChain({ chainId: arbitrumSepolia.id });
+          // Wait a bit for the switch to complete
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error: any) {
+          // User rejected or error switching
+          handleToast({
+            id: Date.now().toString(),
+            message: "Por favor cambia a Arbitrum Sepolia en MetaMask",
+            type: "error",
+          });
+          return;
+        }
+      } else {
+        // Chain not loaded or switchChain not available - allow to continue
+        // wagmi will handle the chain switching when the transaction is sent
+        console.warn("Chain not loaded or switch not available, proceeding anyway. Wagmi will handle chain switching.");
+      }
     }
 
     if (!depositAmount || parseFloat(depositAmount) <= 0) {
