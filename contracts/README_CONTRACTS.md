@@ -3,26 +3,26 @@
 ## Overview
 
 LiquiFi is a Web3 invoice financing platform that integrates:
-- **ENS Identity** (Sepolia L1): Real ENS subnames for verified organizations
+- **ENS Identity** (Ethereum Mainnet L1): Real ENS subnames for verified organizations
 - **DeFi Protocol** (Arbitrum Sepolia L2): Invoice NFTs, ERC-4626 vault, and lending
 
 ## Network Architecture
 
-- **L1 (Sepolia)**: ENS identity management via `ENSSubnameRegistrar`
+- **L1 (Ethereum Mainnet)**: ENS identity management via `ENSSubnameRegistrar`
 - **L2 (Arbitrum Sepolia)**: Core DeFi protocol (NFTs, Vault, Loans)
 
 ## Contracts
 
-### L1: Sepolia
+### L1: Ethereum Mainnet
 
 #### ENSSubnameRegistrar.sol
 - **Purpose**: Manage ENS subnames under a wrapped parent name
 - **Features**:
-  - Register organization subnames (e.g., `acme.liquifi-sepolia.eth`)
+  - Register organization subnames (e.g., `acme.liquifidev.eth`)
   - Authorize/revoke additional wallets per organization
   - Query authorization status
-- **Dependencies**: Requires parent name to be wrapped via NameWrapper
-- **Deployment**: `npm run deploy:sepolia`
+- **Dependencies**: Requires parent name to be wrapped via NameWrapper on Mainnet
+- **Deployment**: `npm run deploy:mainnet`
 
 ### L2: Arbitrum Sepolia
 
@@ -65,13 +65,10 @@ LiquiFi is a Web3 invoice financing platform that integrates:
 
 1. Create `contracts/.env`:
 ```env
-# L1: Sepolia
-ALCHEMY_SEPOLIA_API_KEY=your_sepolia_key
-SEP_ENS_REGISTRY=0x...
-SEP_NAME_WRAPPER=0x...
-SEP_PUBLIC_RESOLVER=0x...
-SEP_PARENT_NAME="liquifi-sepolia.eth"
-SEP_PARENT_NODE=0x... # namehash(SEP_PARENT_NAME)
+# L1: Ethereum Mainnet (ENS)
+ALCHEMY_MAINNET_API_KEY=your_mainnet_key
+ENS_PARENT_NAME=liquifidev.eth
+ENS_PARENT_NODE=0x... # Calculated with: npm run calculate-namehash liquifidev.eth
 
 # L2: Arbitrum Sepolia
 ALCHEMY_API_KEY=your_arb_sepolia_key
@@ -81,16 +78,16 @@ ALCHEMY_POLICY_ID=optional_policy_id
 DEPLOYER_PRIVATE_KEY=0x...
 ```
 
-2. Register and wrap parent ENS name on Sepolia:
-   - Use ENS UI or scripts to register `liquifi-sepolia.eth`
-   - Wrap it using NameWrapper
-   - Get the `namehash` for `SEP_PARENT_NODE`
+2. Register and wrap parent ENS name on Mainnet:
+   - Use ENS UI (https://app.ens.domains/) to ensure `liquifidev.eth` is wrapped
+   - Calculate namehash with: `npm run calculate-namehash liquifidev.eth`
+   - Ensure deployer wallet has ETH in Mainnet for gas
 
-### Deploy to Sepolia L1
+### Deploy to Ethereum Mainnet L1
 
 ```bash
 cd contracts
-npm run deploy:sepolia
+npm run deploy:mainnet
 ```
 
 Output: `ENSSubnameRegistrar` address
@@ -118,10 +115,13 @@ The script automatically:
 After deployment, add to `.env.local`:
 
 ```env
-# L1: ENS
-NEXT_PUBLIC_ENS_REGISTRAR_SEPOLIA=0x...
+# L1: ENS (Mainnet)
+NEXT_PUBLIC_ENS_REGISTRAR_MAINNET=0x...
+ENS_PARENT_NAME=liquifidev.eth
+ENS_PARENT_NODE=0x...
+ALCHEMY_MAINNET_API_KEY=your-mainnet-key
 
-# L2: DeFi
+# L2: DeFi (Arbitrum Sepolia)
 NEXT_PUBLIC_MOCK_USDC_ADDRESS=0x...
 NEXT_PUBLIC_INFT_CONTRACT_ADDRESS=0x...
 NEXT_PUBLIC_VAULT_CONTRACT_ADDRESS=0x...
@@ -132,9 +132,9 @@ NEXT_PUBLIC_LOAN_MANAGER_ADDRESS=0x...
 
 ### Typical Flow
 
-1. **Org Registration** (L1):
+1. **Org Registration** (L1 Mainnet):
    - Owner calls `ENSSubnameRegistrar.registerOrg("acme", ownerAddress)`
-   - Creates `acme.liquifi-sepolia.eth`
+   - Creates `acme.liquifidev.eth` (via NameWrapper)
 
 2. **Invoice Minting** (L2):
    - Owner calls `LiquiFiINFT.mintInvoice(to, debtor, amount, dueDate, uri)`
@@ -190,10 +190,10 @@ This copies ABIs from `contracts/artifacts` to `/abi` for frontend use.
   - Transaction: `https://sepolia.arbiscan.io/tx/<tx_hash>`
   - Contract: `https://sepolia.arbiscan.io/address/<contract_address>`
 
-**Ethereum Sepolia (L1 - ENS)**:
-- Etherscan: https://sepolia.etherscan.io/
-  - Transaction: `https://sepolia.etherscan.io/tx/<tx_hash>`
-  - Contract: `https://sepolia.etherscan.io/address/<contract_address>`
+**Ethereum Mainnet (L1 - ENS)**:
+- Etherscan: https://etherscan.io/
+  - Transaction: `https://etherscan.io/tx/<tx_hash>`
+  - Contract: `https://etherscan.io/address/<contract_address>`
 
 ### Verification Script
 

@@ -34,10 +34,10 @@ export default function BorrowPage() {
 
   // Only check completed states after component is mounted to prevent hydration mismatch
   const steps = [
-    { id: 1, name: "Connect Wallet", completed: mounted && isConnected },
-    { id: 2, name: "Upload CFDI", completed: mounted && invoiceId !== null },
-    { id: 3, name: "Mint NFT", completed: mounted && tokenId !== null },
-    { id: 4, name: "Borrow", completed: mounted && loanId !== null },
+    { id: 1, name: "Conectar Wallet", completed: mounted && isConnected },
+    { id: 2, name: "Subir CFDI", completed: mounted && invoiceId !== null },
+    { id: 3, name: "Mintear NFT", completed: mounted && tokenId !== null },
+    { id: 4, name: "Pedir Préstamo", completed: mounted && loanId !== null },
   ];
 
   return (
@@ -103,25 +103,25 @@ export default function BorrowPage() {
 
           {/* Main Content */}
           <div className="space-y-6">
-            {/* Step 1: Connect Wallet */}
+            {/* Paso 1: Conectar Wallet */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900">Step 1: Connect Wallet</h2>
+              <h2 className="text-xl font-semibold mb-4 text-gray-900">Paso 1: Conectar Wallet</h2>
               <ConnectWallet />
             </div>
 
-            {/* Step 2: Upload CFDI */}
+            {/* Paso 2: Subir CFDI */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-900">Step 2: Upload CFDI Invoice</h2>
+              <h2 className="text-xl font-semibold mb-4 text-gray-900">Paso 2: Subir Factura CFDI</h2>
               <UploadCFDI
                 onInvoiceUploaded={(id) => setInvoiceId(id)}
                 onToast={handleToast}
               />
             </div>
 
-            {/* Step 2.5: KYB Verification with ENS */}
+            {/* Paso 2.5: Verificación KYB con ENS */}
             {invoiceId && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-900">Step 2.5: KYB Verification</h2>
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">Paso 2.5: Verificación KYB</h2>
                 <p className="text-sm text-gray-600 mb-4">
                   Verifica tu organización y registra tu subdominio ENS para continuar con el proceso
                 </p>
@@ -142,10 +142,10 @@ export default function BorrowPage() {
               </div>
             )}
 
-            {/* Step 3: Mint NFT */}
+            {/* Paso 3: Mintear NFT */}
             {invoiceId && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-900">Step 3: Mint Invoice NFT</h2>
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">Paso 3: Mintear NFT de Factura</h2>
                 <MintInvoice
                   invoiceId={invoiceId}
                   onMinted={(tid) => setTokenId(tid)}
@@ -154,10 +154,10 @@ export default function BorrowPage() {
               </div>
             )}
 
-            {/* Step 4: Borrow */}
+            {/* Paso 4: Pedir Préstamo */}
             {tokenId && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-900">Step 4: Deposit & Borrow</h2>
+                <h2 className="text-xl font-semibold mb-4 text-gray-900">Paso 4: Depositar y Pedir Préstamo</h2>
                 <VaultActions
                   tokenId={tokenId}
                   onBorrowed={(lid) => setLoanId(lid)}

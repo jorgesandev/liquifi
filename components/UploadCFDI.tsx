@@ -26,7 +26,7 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
     if (!file || !address) {
       onToast({
         id: Date.now().toString(),
-        message: "Please select a file and connect your wallet",
+        message: "Por favor selecciona un archivo y conecta tu wallet",
         type: "error",
       });
       return;
@@ -44,7 +44,7 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        throw new Error("Error al subir");
       }
 
       const data = await response.json();
@@ -53,13 +53,13 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
 
       onToast({
         id: Date.now().toString(),
-        message: "Invoice uploaded successfully",
+        message: "Factura subida exitosamente",
         type: "success",
       });
     } catch (error) {
       onToast({
         id: Date.now().toString(),
-        message: "Failed to upload invoice",
+        message: "Error al subir factura",
         type: "error",
       });
     } finally {
@@ -71,12 +71,12 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
     <div className="flex flex-col gap-4 p-6 border rounded-lg">
       <div className="flex items-center gap-2">
         <FileText className="w-5 h-5" />
-        <h3 className="font-semibold">Upload CFDI Invoice</h3>
+        <h3 className="font-semibold">Subir Factura CFDI</h3>
       </div>
 
       {uploadedInvoice ? (
         <div className="text-sm text-purple-600">
-          Invoice ID: {uploadedInvoice}
+          ID de Factura: {uploadedInvoice}
         </div>
       ) : (
         <>
@@ -93,7 +93,7 @@ export function UploadCFDI({ onInvoiceUploaded, onToast }: UploadCFDIProps) {
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
           >
             <Upload className="w-4 h-4" />
-            {isUploading ? "Uploading..." : "Upload"}
+            {isUploading ? "Subiendo..." : "Subir"}
           </button>
         </>
       )}

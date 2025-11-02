@@ -183,7 +183,7 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
 
           {tokenId && (
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Token ID:</span>
+              <span className="text-gray-600">ID del Token:</span>
               <span className="font-mono text-sm text-gray-900">{tokenId}</span>
             </div>
           )}
@@ -255,7 +255,7 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
           {loan && (
             <>
               <div className="flex justify-between items-center pt-2 border-t">
-                <span className="text-gray-600">Loan ID:</span>
+                <span className="text-gray-600">ID del Préstamo:</span>
                 <span className="font-mono text-sm text-gray-900">{loan.loan_id}</span>
               </div>
 

@@ -27,7 +27,7 @@ export function VaultActions({
     if (!tokenId || !address) {
       onToast({
         id: Date.now().toString(),
-        message: "Please mint an NFT first and connect your wallet",
+        message: "Por favor mintea un NFT primero y conecta tu wallet",
         type: "error",
       });
       return;
@@ -47,7 +47,7 @@ export function VaultActions({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.details || data.error || "Borrow failed");
+        throw new Error(data.details || data.error || "Error al pedir préstamo");
       }
 
       setLoanInfo({ loanId: data.loanId, txHash: data.txHash });
@@ -59,7 +59,7 @@ export function VaultActions({
         type: "success",
       });
     } catch (error: any) {
-      const errorMessage = error.message || "Failed to borrow";
+      const errorMessage = error.message || "Error al pedir préstamo";
       onToast({
         id: Date.now().toString(),
         message: errorMessage,
@@ -74,13 +74,13 @@ export function VaultActions({
     <div className="flex flex-col gap-4 p-6 border rounded-lg">
       <div className="flex items-center gap-2">
         <PiggyBank className="w-5 h-5" />
-        <h3 className="font-semibold">Vault Actions</h3>
+        <h3 className="font-semibold">Acciones del Vault</h3>
       </div>
 
       {loanInfo ? (
         <div className="text-sm space-y-1">
           <div className="text-purple-600">
-            Loan ID: {loanInfo.loanId}
+            ID del Préstamo: {loanInfo.loanId}
           </div>
           <div className="font-mono text-xs break-all text-gray-600">
             TX: {loanInfo.txHash}
@@ -93,7 +93,7 @@ export function VaultActions({
           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
         >
           <ArrowDownCircle className="w-4 h-4" />
-          {isBorrowing ? "Processing..." : "Deposit & Borrow"}
+          {isBorrowing ? "Procesando..." : "Depositar y Pedir Préstamo"}
         </button>
       )}
     </div>
