@@ -130,7 +130,9 @@ export async function POST(request: NextRequest) {
           console.log(`   Owner address: ${owner_address}`);
           
           const provider = new ethers.JsonRpcProvider(MAINNET_RPC_URL);
-          const signer = new ethers.Wallet(DEPLOYER_PRIVATE_KEY, provider);
+          // DEPLOYER_PRIVATE_KEY is validated above, safe to use
+          const deployerKey = DEPLOYER_PRIVATE_KEY as string;
+          const signer = new ethers.Wallet(deployerKey, provider);
 
           // Validate owner address
           if (!ethers.isAddress(owner_address)) {

@@ -10,6 +10,9 @@ if (!DEPLOYER_PRIVATE_KEY || !alchemyApiKey) {
   throw new Error("Missing DEPLOYER_PRIVATE_KEY or NEXT_PUBLIC_ALCHEMY_API_KEY");
 }
 
+// Type-safe constant after validation
+const DEPLOYER_KEY: string = DEPLOYER_PRIVATE_KEY;
+
 // Construct Alchemy RPC URL
 const ALCHEMY_API_URL = alchemyPolicyId
   ? `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}?policyId=${alchemyPolicyId}`
@@ -49,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     // Setup provider and signer
     const provider = new ethers.JsonRpcProvider(ALCHEMY_API_URL);
-    const signer = new ethers.Wallet(DEPLOYER_PRIVATE_KEY, provider);
+    const signer = new ethers.Wallet(DEPLOYER_KEY, provider);
 
     // Get MockUSDC contract
     const mockUSDC = new ethers.Contract(MOCK_USDC_ADDRESS, MOCK_USDC_ABI, signer);

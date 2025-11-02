@@ -72,12 +72,14 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
   };
 
   const fetchKYB = async () => {
-    if (!invoice) return;
+    if (!invoice || !invoiceId) return;
     try {
+      // Generate org_id from invoiceId (matches the pattern used in the backend)
+      const org_id = `org_${invoiceId}`;
       const response = await fetch("/api/kyb", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ org_id: invoice.org_id }),
+        body: JSON.stringify({ org_id }),
       });
       if (response.ok) {
         const data = await response.json();
@@ -124,7 +126,7 @@ export function LoanSummary({ invoiceId, tokenId, loanId }: LoanSummaryProps) {
   const maxLoanAmountInUSDC = invoiceAmountInUSDC * 0.70; // 70% LTV
   const borrowAmount = maxLoanAmountInUSDC;
   
-  const isApproved = kyb?.status === "approved" || kyb?.score >= 80;
+  const isApproved = kyb?.status === "approved" || (kyb?.score !== undefined && kyb.score >= 80);
   const isInvoiceValidated = invoice.status === "minted" || invoice.nft_token_id !== null;
   const isLoanActive = loan?.status === "active";
 

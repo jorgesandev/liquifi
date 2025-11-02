@@ -17,6 +17,9 @@ if (!DEPLOYER_PRIVATE_KEY || !alchemyApiKey) {
   throw new Error("Missing DEPLOYER_PRIVATE_KEY or NEXT_PUBLIC_ALCHEMY_API_KEY");
 }
 
+// Type-safe constant after validation
+const DEPLOYER_KEY: string = DEPLOYER_PRIVATE_KEY;
+
 // Construct Alchemy RPC URL
 const ALCHEMY_API_URL = alchemyPolicyId
   ? `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}?policyId=${alchemyPolicyId}`
@@ -71,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     // Setup provider and signer
     const provider = new ethers.JsonRpcProvider(ALCHEMY_API_URL);
-    const signer = new ethers.Wallet(DEPLOYER_PRIVATE_KEY, provider);
+    const signer = new ethers.Wallet(DEPLOYER_KEY, provider);
 
     // Check if signer is owner (for MVP)
     const contract = new ethers.Contract(
@@ -114,7 +117,7 @@ export async function POST(request: NextRequest) {
       : Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60); // Default: 30 days from now
     
     // Get current total supply to predict tokenId
-    let currentSupply = 0n;
+    let currentSupply = BigInt(0);
     try {
       const supply = await contract.totalSupply();
       currentSupply = BigInt(supply.toString());
@@ -165,7 +168,7 @@ export async function POST(request: NextRequest) {
       tokenId = newSupply.toString();
       
       // Verify tokenId makes sense
-      if (currentSupply > 0n && BigInt(tokenId) <= currentSupply) {
+      if (currentSupply > BigInt(0) && BigInt(tokenId) <= currentSupply) {
         // Fallback: parse from events
         throw new Error("TokenId validation failed, parsing from events");
       }
@@ -193,16 +196,16 @@ export async function POST(request: NextRequest) {
             tokenId = parsed.args[0].toString();
           } else {
             // Fallback: use expected tokenId
-            tokenId = (currentSupply + 1n).toString();
+            tokenId = (currentSupply + BigInt(1)).toString();
           }
         } else {
           // Last resort: use expected tokenId
-          tokenId = (currentSupply + 1n).toString();
+          tokenId = (currentSupply + BigInt(1)).toString();
         }
       } catch (parseErr) {
         console.error("Failed to parse events:", parseErr);
         // Last resort: use expected tokenId
-        tokenId = (currentSupply + 1n).toString();
+        tokenId = (currentSupply + BigInt(1)).toString();
       }
     }
 

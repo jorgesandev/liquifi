@@ -33,15 +33,16 @@ export default function Home() {
     },
     {
       icon: PiggyBank,
-      title: "Vault Tokenizado",
-      description: "Sistema descentralizado de préstamos y depósitos",
+      title: "Vault Tokenizado ERC-4626",
+      description: "Estándar de oro en DeFi con rendimientos del 8-15% APY",
     },
   ];
 
   const stats = [
-    { value: "70%", label: "LTV Máximo" },
-    { value: "10%", label: "Tasa Anual" },
-    { value: "<24h", label: "Tiempo de Procesamiento" },
+    { value: "70-85%", label: "LTV Disponible" },
+    { value: "8-15%", label: "APY para Inversores" },
+    { value: "2-4h", label: "Evaluación KYB" },
+    { value: "Minutos", label: "Liquidez Instantánea" },
   ];
 
   return (
@@ -53,14 +54,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Financiamiento de Facturas
+              La Nueva Forma de
               <span className="block text-purple-600">
-                Descentralizado
+                Acceso a Capital
+              </span>
+              <span className="block text-gray-900 text-3xl md:text-4xl mt-4 font-normal">
+                que llegó para quedarse
               </span>
           </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Convierte tus facturas en NFTs, obtén liquidez instantánea o invierte
-              en un vault tokenizado. Todo en Arbitrum Sepolia.
+              Tecnología Web3 para redefinir el factoraje. Convierte tus facturas en NFTs,
+              obtén liquidez instantánea en minutos o invierte con rendimientos del 8-15% APY.
+              Todo transparente, automatizado y 30-50% más barato que el factoraje tradicional.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -85,7 +90,7 @@ export default function Home() {
       {/* Stats Section */}
       <section className="py-12 bg-purple-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div
                 key={index}
@@ -109,7 +114,7 @@ export default function Home() {
               Características Principales
             </h2>
             <p className="text-xl text-gray-600">
-              Todo lo que necesitas para financiamiento descentralizado
+              Factoring descentralizado con identidad Web3 verificable
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -143,13 +148,18 @@ export default function Home() {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               ¿Cómo Funciona para Prestatarios?
             </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Nuestro sistema de IA evalúa 7 dimensiones de calidad crediticia en 2-4 horas.
+              Cada factura recibe un grado de riesgo (A, B, C o D) y acceso a capital a un costo
+              30-50% más bajo que el factoraje tradicional.
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { step: "1", title: "Conecta Wallet", desc: "Conecta tu MetaMask en Arbitrum Sepolia" },
-              { step: "2", title: "Sube CFDI", desc: "Sube tu factura en formato XML o PDF" },
-              { step: "3", title: "Mint NFT", desc: "Tokeniza tu factura como NFT verificable" },
-              { step: "4", title: "Obtén Liquidez", desc: "Deposita NFT y recibe hasta 70% LTV" },
+              { step: "1", title: "Sube tu Factura", desc: "Sube tu CFDI en formato XML o PDF" },
+              { step: "2", title: "Verificación KYB", desc: "IA evalúa 7 dimensiones en 2-4 horas. Recibe tu subdominio ENS" },
+              { step: "3", title: "Tokenización", desc: "Tu factura se convierte en NFT verificable en blockchain" },
+              { step: "4", title: "Liquidez Inmediata", desc: "Recibe 70-85% LTV en USDC en minutos, no semanas" },
             ].map((item, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg shadow-purple-500/30">
@@ -183,12 +193,17 @@ export default function Home() {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               ¿Cómo Funciona para Inversores?
             </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Deposita USDC en nuestro vault tokenizado ERC-4626 y obtén rendimientos del 8-15% APY
+              respaldados por activos reales. Cuando las facturas se cobran, recibes tus ganancias
+              distribuidas automáticamente. Todo transparente, todo auditable, todo onchain.
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { step: "1", title: "Conecta Wallet", desc: "Conecta tu MetaMask con fondos" },
-              { step: "2", title: "Deposita", desc: "Deposita ETH o tokens en el vault" },
-              { step: "3", title: "Gana Intereses", desc: "Recibe retornos de los préstamos" },
+              { step: "1", title: "Deposita USDC", desc: "Deposita stablecoins en el vault ERC-4626" },
+              { step: "2", title: "Financia Préstamos", desc: "Tu capital financia préstamos a PyMEs mexicanas" },
+              { step: "3", title: "Gana Rendimientos", desc: "Recibe 8-15% APY automáticamente distribuido" },
             ].map((item, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 bg-purple-400 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg shadow-purple-400/30">
@@ -222,7 +237,7 @@ export default function Home() {
             ¿Listo para Comenzar?
           </h2>
           <p className="text-xl text-purple-100 mb-8">
-            Únete a la revolución del financiamiento descentralizado
+            Activa el capital congelado de tus facturas. Transparente, automatizado y onchain.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

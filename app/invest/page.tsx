@@ -216,7 +216,7 @@ export default function InvestPage() {
         console.error("Error al aprobar:", error);
         handleToast({
           id: Date.now().toString(),
-          message: `Error al aprobar: ${error.message || error.shortMessage || "Error desconocido"}`,
+          message: `Error al aprobar: ${(error as any).message || (error as any).shortMessage || "Error desconocido"}`,
           type: "error",
         });
       },
@@ -235,7 +235,7 @@ export default function InvestPage() {
         console.error("Error al depositar:", error);
         handleToast({
           id: Date.now().toString(),
-          message: `Error al depositar: ${error.message || error.shortMessage || "Error desconocido"}`,
+          message: `Error al depositar: ${(error as any).message || (error as any).shortMessage || "Error desconocido"}`,
           type: "error",
         });
       },
@@ -254,7 +254,7 @@ export default function InvestPage() {
         console.error("Error al retirar:", error);
         handleToast({
           id: Date.now().toString(),
-          message: `Error al retirar: ${error.message || error.shortMessage || "Error desconocido"}`,
+          message: `Error al retirar: ${(error as any).message || (error as any).shortMessage || "Error desconocido"}`,
           type: "error",
         });
       },
@@ -328,7 +328,7 @@ export default function InvestPage() {
           console.error("Error al depositar después de aprobar:", error);
           handleToast({
             id: Date.now().toString(),
-            message: error?.shortMessage || "Error al depositar después de aprobar",
+            message: (error as any)?.shortMessage || "Error al depositar después de aprobar",
             type: "error",
           });
         }
@@ -462,7 +462,7 @@ export default function InvestPage() {
 
     try {
       const amount = parseUnits(depositAmount, 6); // USDC has 6 decimals
-      const currentAllowance = allowance || 0n;
+      const currentAllowance = allowance || BigInt(0);
 
       // Step 1: Approve if needed
       if (currentAllowance < amount) {
@@ -512,7 +512,7 @@ export default function InvestPage() {
       });
     } catch (error: any) {
       console.error("Error en handleDeposit:", error);
-      const errorMessage = error?.shortMessage || error?.message || "Error desconocido";
+      const errorMessage = (error as any)?.shortMessage || (error as any)?.message || "Error desconocido";
       handleToast({
         id: Date.now().toString(),
         message: `Error: ${errorMessage}`,
@@ -544,8 +544,8 @@ export default function InvestPage() {
       // Convert assets to shares for withdrawal
       // For now, we'll use a simple calculation: shares = (assets * totalSupply) / totalAssets
       const assetsAmount = parseUnits(withdrawAmount, 6);
-      const totalAssetsValue = totalAssets || 1n;
-      const totalSupplyValue = totalSupply || 1n;
+      const totalAssetsValue = totalAssets || BigInt(1);
+      const totalSupplyValue = totalSupply || BigInt(1);
       
       // Calculate shares needed: shares = (assets * totalSupply) / totalAssets
       const sharesNeeded = (assetsAmount * totalSupplyValue) / totalAssetsValue;
@@ -568,7 +568,7 @@ export default function InvestPage() {
     } catch (error: any) {
       handleToast({
         id: Date.now().toString(),
-        message: error?.shortMessage || "Error al retirar",
+        message: (error as any)?.shortMessage || "Error al retirar",
         type: "error",
       });
     }
@@ -599,7 +599,7 @@ export default function InvestPage() {
     maximumFractionDigits: 2,
   });
   
-  const utilizationRate = totalAssets && totalAssets > 0n
+  const utilizationRate = totalAssets && totalAssets > BigInt(0)
     ? ((totalBorrowed / parseFloat(formatUnits(totalAssets, 6))) * 100).toFixed(1)
     : "0.0";
   
@@ -607,7 +607,7 @@ export default function InvestPage() {
 
   // Format user shares (ERC4626 uses 18 decimals for shares)
   // Note: The raw value is in wei (smallest unit), so we need to divide by 10^18
-  const userSharesRaw = vaultShares || 0n;
+  const userSharesRaw = vaultShares || BigInt(0);
   const userSharesValue = parseFloat(formatUnits(userSharesRaw, 18));
   
   // Format shares with appropriate precision
@@ -624,9 +624,9 @@ export default function InvestPage() {
     : "0.000000000000000000";  // Show 18 decimal places when zero
   
   // Also calculate what assets these shares represent
-  const userAssetsFromShares = vaultShares && totalAssets && totalSupply && totalSupply > 0n
+  const userAssetsFromShares = vaultShares && totalAssets && totalSupply && totalSupply > BigInt(0)
     ? (vaultShares * totalAssets) / totalSupply
-    : 0n;
+    : BigInt(0);
   
   const userAssetsFormatted = userAssetsFromShares
     ? parseFloat(formatUnits(userAssetsFromShares, 6)).toLocaleString(undefined, {
@@ -637,12 +637,12 @@ export default function InvestPage() {
   
   // Estimate deposit amount: if totalAssets increased significantly, someone deposited
   // Check if vault has assets but user shares are 0 - might be a display delay
-  const vaultHasAssets = totalAssets && totalAssets > 0n;
-  const vaultHasSupply = totalSupply && totalSupply > 0n;
+  const vaultHasAssets = totalAssets && totalAssets > BigInt(0);
+  const vaultHasSupply = totalSupply && totalSupply > BigInt(0);
   
   // If vault has assets/supply but user has no shares visible, check if it's a timing issue
   // This is a heuristic - if vault grew but shares aren't showing, likely just deposited
-  const likelyJustDeposited = userSharesRaw === 0n && vaultHasAssets && vaultHasSupply;
+  const likelyJustDeposited = userSharesRaw === BigInt(0) && vaultHasAssets && vaultHasSupply;
   
   // Debug: Log vault shares to console with more details
   useEffect(() => {
@@ -665,7 +665,7 @@ export default function InvestPage() {
       });
       
       // Check if we should query the vault directly
-      if (vaultShares === 0n || vaultShares === undefined) {
+      if (vaultShares === BigInt(0) || vaultShares === undefined) {
         console.log("⚠️ No shares detected. Possible reasons:");
         console.log("   1. Deposit transaction not confirmed yet");
         console.log("   2. Wrong address being queried");
@@ -925,7 +925,7 @@ export default function InvestPage() {
                     </div>
                     <button
                       onClick={handleWithdraw}
-                      disabled={!withdrawAmount || isWithdrawingFinal || !vaultShares || vaultShares === 0n}
+                      disabled={!withdrawAmount || isWithdrawingFinal || !vaultShares || vaultShares === BigInt(0)}
                       className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
                     >
                       {isWithdrawingFinal ? (

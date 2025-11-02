@@ -18,6 +18,9 @@ if (!DEPLOYER_PRIVATE_KEY || !alchemyApiKey) {
   throw new Error("Missing DEPLOYER_PRIVATE_KEY or NEXT_PUBLIC_ALCHEMY_API_KEY");
 }
 
+// Type-safe constant after validation
+const DEPLOYER_KEY: string = DEPLOYER_PRIVATE_KEY;
+
 // Construct Alchemy RPC URL
 const ALCHEMY_API_URL = alchemyPolicyId
   ? `https://arb-sepolia.g.alchemy.com/v2/${alchemyApiKey}?policyId=${alchemyPolicyId}`
@@ -157,7 +160,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Setup signer (provider already created above)
-    const signer = new ethers.Wallet(DEPLOYER_PRIVATE_KEY, provider);
+    const signer = new ethers.Wallet(DEPLOYER_KEY, provider);
 
     // For MVP: The NFT should be owned by deployer (minted to deployer address)
     // In production, this should be the user's address from the frontend
