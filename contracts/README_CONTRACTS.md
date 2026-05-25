@@ -22,7 +22,7 @@ LiquiFi is a Web3 invoice financing platform that integrates:
   - Authorize/revoke additional wallets per organization
   - Query authorization status
 - **Dependencies**: Requires parent name to be wrapped via NameWrapper on Mainnet
-- **Deployment**: `npm run deploy:mainnet`
+- **Deployment**: `bun run deploy:mainnet`
 
 ### L2: Arbitrum Sepolia
 
@@ -68,7 +68,7 @@ LiquiFi is a Web3 invoice financing platform that integrates:
 # L1: Ethereum Mainnet (ENS)
 ALCHEMY_MAINNET_API_KEY=your_mainnet_key
 ENS_PARENT_NAME=liquifidev.eth
-ENS_PARENT_NODE=0x... # Calculated with: npm run calculate-namehash liquifidev.eth
+ENS_PARENT_NODE=0x... # Calculated with: bun run calculate-namehash liquifidev.eth
 
 # L2: Arbitrum Sepolia
 ALCHEMY_API_KEY=your_arb_sepolia_key
@@ -80,14 +80,14 @@ DEPLOYER_PRIVATE_KEY=0x...
 
 2. Register and wrap parent ENS name on Mainnet:
    - Use ENS UI (https://app.ens.domains/) to ensure `liquifidev.eth` is wrapped
-   - Calculate namehash with: `npm run calculate-namehash liquifidev.eth`
+   - Calculate namehash with: `bun run calculate-namehash liquifidev.eth`
    - Ensure deployer wallet has ETH in Mainnet for gas
 
 ### Deploy to Ethereum Mainnet L1
 
 ```bash
 cd contracts
-npm run deploy:mainnet
+bun run deploy:mainnet
 ```
 
 Output: `ENSSubnameRegistrar` address
@@ -96,7 +96,7 @@ Output: `ENSSubnameRegistrar` address
 
 ```bash
 cd contracts
-npm run deploy:arb
+bun run deploy:arb
 ```
 
 Outputs:
@@ -176,7 +176,7 @@ NEXT_PUBLIC_LOAN_MANAGER_ADDRESS=0x...
 After deployment, copy ABIs to frontend:
 
 ```bash
-npm run copy-abis
+bun run copy-abis
 ```
 
 This copies ABIs from `contracts/artifacts` to `/abi` for frontend use.
@@ -201,7 +201,7 @@ Use the provided script to verify transactions and contract deployment:
 
 ```bash
 # From project root
-npm run verify-tx <transaction_hash>
+bun run verify-tx <transaction_hash>
 ```
 
 The script checks:

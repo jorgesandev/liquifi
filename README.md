@@ -1,478 +1,319 @@
-# LiquiFi - Decentralized Invoice Financing Platform
+# LiquiFi - Decentralized Invoice Financing Protocol
 
-La nueva forma de acceso a capital que llegó para quedarse. Tecnología Web3 para redefinir el factoraje.
+🏆 **1st Place Winner** in the **Arbitrum Innovation Track** at **Ethereum Mexico 2025**
 
-## 📜 Contratos Inteligentes
+LiquiFi is a next-generation decentralized invoice financing (factoring) platform designed to unlock frozen working capital for small and medium-sized enterprises (SMEs) in Latin America. By combining Web3 identity and DeFi primitives, LiquiFi offers immediate liquidity at a fraction of the cost of traditional financial institutions.
 
-Estos son los contratos que usa LiquiFi:
+🌐 **Live Demo:** [liquifidev.vercel.app](https://liquifidev.vercel.app)
 
-- **LiquiFiINFT** - `0x07d0D37cb4cb97ef60c0f881623025b1a2104Eb6` (Arbitrum Sepolia) - Tokeniza facturas como NFTs ERC-721.
-- **LiquidityVault** - `0xF831fafDEc6DF2C21830052CDFD504AA759DD850` (Arbitrum Sepolia) - Vault ERC-4626 que gestiona la liquidez del protocolo.
-- **LoanManager** - `0xbF7C1287a064a81aa02612562236CdA6A7d614C3` (Arbitrum Sepolia) - Gestiona préstamos con LTV del 70% usando NFTs como colateral.
-- **ENSSubnameRegistrar** - `0xa6EA99E4b6eEf5284823DB4A7ad2882480e4cd52` (Ethereum Mainnet) - Registra subdominios ENS para empresas verificadas.
-- **USDC** - `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d` (Arbitrum Sepolia) - Token USDC real de Circle usado como asset del vault.
+---
 
-## 🎯 Visión
+## 📖 Table of Contents
 
-LiquiFi activa el capital congelado de las facturas a través de una plataforma de finanzas descentralizadas que tokeniza facturas. Lo que antes era un documento esperando ser cobrado, hoy es un activo líquido.
+- [Overview](#-overview)
+- [How it Works](#-how-it-works)
+- [System Architecture](#-system-architecture)
+- [Smart Contracts](#-smart-contracts)
+- [Tech Stack](#-tech-stack)
+- [Prerequisites](#-prerequisites)
+- [Local Setup & Configuration](#-local-setup--configuration)
+- [Deployment Guide](#-deployment-guide)
+- [Available Scripts](#-available-scripts)
+- [Security Features](#-security-features)
+- [License](#-license)
 
-**Características principales:**
-- **70-85% LTV Disponible**: Obtén hasta el 85% del valor de tu factura en minutos
-- **8-15% APY para Inversores**: Rendimientos superiores respaldados por activos reales
-- **2-4h Evaluación KYB**: IA evalúa 7 dimensiones de calidad crediticia
-- **Liquidez Instantánea**: Minutos, no semanas
-- **30-50% más barato** que el factoraje tradicional
+---
 
-## 🏗️ Arquitectura
+## 🎯 Overview
 
-### Cross-Chain Design
+In Latin America, SMEs face severe cash flow constraints. Invoices (specifically Mexican electronic invoices, **CFDI**) often take 30, 60, or 90 days to clear. Traditional factoring (invoice discounting) is slow, paper-heavy, and charges exorbitant interest rates (up to 30-50% APR).
 
-LiquiFi utiliza una arquitectura cross-chain optimizada:
+**LiquiFi** redefines this flow using Web3 technology:
+- **70% LTV Liquidity**: Borrowers mint their XML/PDF invoice metadata as a verified ERC-721 NFT (LINFT) and instantly access up to 70% of its face value in USDC.
+- **8-15% APY for Liquidity Providers**: Investors deposit USDC into an ERC-4626 vault that automatically routes capital to collateralized, yield-bearing SME loans.
+- **ENS Identity & KYB**: Verified organizations receive custom Ethereum Mainnet L1 subnames (e.g., `company.liquifidev.eth`), binding off-chain corporate registry validity with on-chain credit history.
+- **30-50% Cheaper**: Replaces middleman processing fees with automated smart contracts.
 
-- **L1 (Ethereum Mainnet)**: Gestión de identidad ENS
-  - Cada empresa verificada recibe un subdominio ENS (ej: `empresa.liquifidev.eth`)
-  - Identidad persistente y verificable on-chain
-  - Subdominios se registran automáticamente después de KYB aprobado
+---
 
-- **L2 (Arbitrum Sepolia)**: Protocolo DeFi principal
-  - NFTs de facturas (ERC-721)
-  - Vault tokenizado ERC-4626
-  - Sistema de préstamos con LTV del 70%
-  - Costos de gas mínimos para operaciones frecuentes
+## 🏗️ How it Works
+
+### For Borrowers (SMEs)
+1. **Connect Wallet**: Authenticate using a Web3 wallet (on Arbitrum Sepolia).
+2. **Upload CFDI Invoice**: Upload your official Mexican XML/PDF invoice.
+3. **Execute KYB & ENS Registration**:
+   - The platform performs an automated corporate check (evaluating credit indicators).
+   - Once approved, a subdomain registration request is sent to Mainnet L1 (e.g., `acme.liquifidev.eth`).
+4. **Tokenize Invoice (Mint NFT)**: The invoice's details (debtor, amount, due date, hash) are minted into a non-fungible token (ERC-721).
+5. **Request Loan**:
+   - Lock the NFT into the `LoanManager` contract.
+   - Instantly draw down up to 70% LTV in USDC from the liquidity pool.
+6. **Repay & Reclaim**: Repay the loan principal + interest before the grace period expires to unlock and reclaim your invoice NFT.
+
+### For Investors (LPs)
+1. **Deposit USDC**: Deposit USDC stablecoins into the `LiquidityVault` (ERC-4626).
+2. **Earn Yield**: Earn interest payments from active loans. The vault represents LP ownership through `LQFv` vault share tokens.
+3. **Withdraw**: Redeem vault shares back to USDC at any time, subject to pool liquidity.
+
+---
+
+## 🌐 System Architecture
+
+LiquiFi utilizes an optimized cross-chain design using Ethereum Mainnet (L1) for persistent identity and Arbitrum Sepolia (L2) for low-cost, high-throughput DeFi lending operations.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Borrower as Borrower (SME)
+    actor LP as Liquidity Provider
+    participant FE as Next.js Frontend
+    participant DB as Supabase DB
+    participant L1 as L1: Ethereum Mainnet (ENS)
+    participant L2 as L2: Arbitrum Sepolia (DeFi)
+
+    %% LP Flow
+    Note over LP, L2: Liquidity Provider Setup
+    LP->>FE: Connect & Approve USDC
+    LP->>L2: Deposit USDC into LiquidityVault (ERC-4626)
+    L2-->>LP: Mint LQFv Share Tokens
+
+    %% Borrower Flow
+    Note over Borrower, L2: Borrower Setup & Loan Flow
+    Borrower->>FE: Connect Wallet & Upload CFDI Invoice
+    FE->>DB: Save Invoice Metadata & Generate Hash
+    FE->>FE: AI KYB Evaluation
+    FE->>L1: Register Organization Subname (via ENSSubnameRegistrar)
+    L1-->>Borrower: Assigns company.liquifidev.eth Subdomain
+    FE->>L2: Mint ERC-721 Invoice NFT (LINFT) with Metadata
+    Borrower->>L2: Approve NFT & Initiate Loan on LoanManager
+    L2->>L2: Lock NFT in Vault & Transfer 70% LTV USDC to Borrower
+
+    %% Repayment Flow
+    Note over Borrower, L2: Repayment Flow
+    Borrower->>L2: Repay Loan (Principal + Interest)
+    L2->>L2: Unlock and Transfer NFT back to Borrower
+    L2->>L2: Distribute interest yield to LiquidityVault
+```
+
+---
+
+## 📁 Project Structure
+
+```
+liquifi/
+├── app/                  # Next.js 16 App Router
+│   ├── api/              # API routes (invoices, kyb, mint, borrow)
+│   ├── borrow/           # Borrowing dashboard (Upload CFDI, Mint NFT, Request Loans)
+│   ├── invest/           # Investing dashboard (ERC-4626 deposit/withdraw actions)
+│   ├── page.tsx          # Marketing home page
+│   └── layout.tsx        # Global layout & Providers (Wagmi, QueryClient)
+├── components/           # Shared React UI Components
+│   ├── ConnectWallet.tsx # Web3 wallet connection dropdown
+│   ├── UploadCFDI.tsx    # File drag-and-drop & parsing helper
+│   ├── MintInvoice.tsx   # NFT minting triggers
+│   ├── VaultActions.tsx  # Deposit/Withdraw forms for the LP Vault
+│   └── Navigation.tsx    # Header & navigation links
+├── lib/                  # Utilities and Web3 config
+│   ├── wagmi.ts          # Wagmi config (Arbitrum Sepolia & Mainnet)
+│   ├── supabase.ts       # Supabase server client
+│   └── contracts.ts      # ABI map & contract addresses
+├── contracts/            # Smart Contracts Workspace (Hardhat)
+│   ├── contracts/        # Solidity Smart Contracts
+│   ├── scripts/          # Contract deployment & calculations
+│   └── hardhat.config.ts # Hardhat compile & network setup
+├── abi/                  # Generated contract ABIs for the frontend
+├── supabase/             # Database Schemas & Migrations
+└── docs/                 # Extended technical walkthroughs
+```
+
+---
+
+## 📜 Smart Contracts
+
+### L1 Ethereum Mainnet (Identity)
+- [ENSSubnameRegistrar.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/ENSSubnameRegistrar.sol)
+  - **Purpose**: Issues off-chain validated organizations a custom `name.liquifidev.eth` subdomain.
+  - **Mechanics**: Implements subname wrapping. The parent node must be wrapped and owned by the registrar contract.
+
+### L2 Arbitrum Sepolia (DeFi Core)
+- [MockUSDC.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/MockUSDC.sol)
+  - **Purpose**: Mock ERC-20 token mimicking USDC (6 decimals) for local testing and testnet interactions.
+- [LiquiFiINFT.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/LiquiFiINFT.sol)
+  - **Purpose**: ERC-721 representing tokenized invoices.
+  - **Metadata**: Stores debtor address, invoice amount, due date, and IPFS metadata URI.
+- [LiquidityVault.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/LiquidityVault.sol)
+  - **Purpose**: ERC-4626 vault managing pool liquidity, accepting deposits, and minting vault shares (`LQFv`). It serves as the custodian for invoice NFTs locked as collateral.
+- [LoanManager.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/LoanManager.sol)
+  - **Purpose**: Oversees lending operations. It enforces the maximum 70% LTV parameter, calculates annual interest rates (10%), manages repayments, and coordinates default liquidations.
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 16, TypeScript, TailwindCSS
-- **Web3**: wagmi, viem, ethers.js
-- **State Management**: TanStack Query
+- **Frontend**: Next.js 16 (App Router), TypeScript, TailwindCSS, Lucide Icons
+- **Web3 Integrations**: wagmi v2, viem v2, ethers.js v6
+- **State Management & Data Fetching**: TanStack React Query v5
 - **Database**: Supabase (PostgreSQL)
-- **Smart Contracts**: Solidity 0.8.24, Hardhat, OpenZeppelin v5
-- **Networks**: 
-  - Ethereum Mainnet (L1) - ENS Identity
-  - Arbitrum Sepolia (L2) - DeFi Protocol
+- **Smart Contract Environment**: Solidity 0.8.24, Hardhat, OpenZeppelin v5
+- **Package Manager**: Bun (Standardized environment)
 
-## 📋 Prerequisitos
+---
 
-- Node.js 18+ y npm
-- MetaMask o wallet Web3 compatible
-- Cuenta de Alchemy con API keys para:
-  - Arbitrum Sepolia (L2)
-  - Ethereum Mainnet (L1)
-- Cuenta de Supabase
-- Private key para deployment (con fondos en testnet)
-- Dominio ENS padre registrado y wrapped en Mainnet (`liquifidev.eth`)
+## 📋 Prerequisites
 
-## ⚙️ Configuración
+Ensure you have the following installed and configured before running the project:
 
-### 1. Clonar y Instalar
+- **Bun** (v1.x) installed locally (`curl -fsSL https://bun.sh/install | bash`)
+- **MetaMask** or any EIP-1193 compatible Web3 wallet
+- **Alchemy** Account (API keys for Arbitrum Sepolia and Ethereum Mainnet)
+- **Supabase** Project (PostgreSQL instance with SQL tables initialized)
+- Testnet funds (ETH on Arbitrum Sepolia and Sepolia/Mainnet for identity tasks)
 
+---
+
+## ⚙️ Local Setup & Configuration
+
+### 1. Clone & Install
 ```bash
-# Clonar repositorio
+# Clone the repository
 git clone <repository-url>
 cd liquifi
 
-# Instalar dependencias del proyecto
-npm install
+# Install frontend and root dependencies
+bun install
 
-# Instalar dependencias de contratos
+# Install smart contract dependencies
 cd contracts
-npm install
+bun install
 cd ..
 ```
 
-### 2. Variables de Entorno
+### 2. Environment Variables
 
 #### Root `.env.local`
-
-Crea un archivo `.env.local` en la raíz del proyecto. Usa `.env.local.example` como referencia:
-
+Create a `.env.local` file in the root directory. Refer to `.env.local.example` for details:
 ```bash
-# Alchemy (Arbitrum Sepolia - L2)
+# Alchemy API Keys
 NEXT_PUBLIC_ALCHEMY_API_KEY=your-arb-sepolia-key
 NEXT_PUBLIC_ALCHEMY_POLICY_ID=your-arb-sepolia-policy-id
 
-# Supabase
+# Supabase Configurations
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Contratos DeFi (Arbitrum Sepolia - L2)
-NEXT_PUBLIC_MOCK_USDC_ADDRESS=0x...
-NEXT_PUBLIC_INFT_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_VAULT_CONTRACT_ADDRESS=0x...
-NEXT_PUBLIC_LOAN_MANAGER_ADDRESS=0x...
+# Deployed L2 Smart Contracts (Arbitrum Sepolia)
+NEXT_PUBLIC_MOCK_USDC_ADDRESS=0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d
+NEXT_PUBLIC_INFT_CONTRACT_ADDRESS=0x07d0D37cb4cb97ef60c0f881623025b1a2104Eb6
+NEXT_PUBLIC_VAULT_CONTRACT_ADDRESS=0xF831fafDEc6DF2C21830052CDFD504AA759DD850
+NEXT_PUBLIC_LOAN_MANAGER_ADDRESS=0xbF7C1287a064a81aa02612562236CdA6A7d614C3
 
-# ENS (Ethereum Mainnet - L1)
-NEXT_PUBLIC_ENS_REGISTRAR_MAINNET=0x...
+# Deployed L1 ENS Registrar (Ethereum Mainnet)
+NEXT_PUBLIC_ENS_REGISTRAR_MAINNET=0xa6EA99E4b6eEf5284823DB4A7ad2882480e4cd52
 ENS_PARENT_NAME=liquifidev.eth
+ENS_PARENT_NODE=0x... # Obtain via Namehash calculation script
 ALCHEMY_MAINNET_API_KEY=your-mainnet-key
-ENS_PARENT_NODE=0x...
 
-# Clave Privada del Deployer (⚠️ SENSIBLE)
+# Server-side Deployer Account
 DEPLOYER_PRIVATE_KEY=0x...
 ```
 
 #### Contracts `.env`
-
-Crea un archivo `.env` en `contracts/`:
-
+Create a `.env` file in the `contracts/` directory. Use `contracts/.env.example` as a template:
 ```bash
-# Arbitrum Sepolia (L2)
+# L1/L2 Alchemy Nodes
 ALCHEMY_API_KEY=your-arb-sepolia-key
 ALCHEMY_POLICY_ID=your-arb-sepolia-policy-id
-
-# Ethereum Mainnet (L1 - ENS)
 ALCHEMY_MAINNET_API_KEY=your-mainnet-key
 
-# Deployment
+# Deployer Key
 DEPLOYER_PRIVATE_KEY=0x...
 
-# ENS Mainnet Configuration
+# L1 ENS Parent Configurations
 ENS_PARENT_NAME=liquifidev.eth
-ENS_PARENT_NODE=0x... # Calculado con: npm run calculate-namehash liquifidev.eth
+ENS_PARENT_NODE=0x...
 ```
-
-**⚠️ Seguridad**: Nunca commitees archivos `.env` o `.env.local`. Las claves privadas nunca deben exponerse al cliente.
-
-### 3. Configuración de Supabase
-
-#### Crear Tablas
-
-Ejecuta el siguiente SQL en el SQL Editor de Supabase:
-
-```sql
--- Tabla de facturas
-CREATE TABLE invoices (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  org_id TEXT NOT NULL,
-  amount NUMERIC NOT NULL,
-  due_date TIMESTAMPTZ NOT NULL,
-  debtor_name TEXT NOT NULL,
-  cfdi_hash TEXT NOT NULL UNIQUE,
-  status TEXT NOT NULL DEFAULT 'uploaded',
-  nft_token_id TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tabla de resultados KYB
-CREATE TABLE kyb_results (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  org_id TEXT NOT NULL UNIQUE,
-  score INTEGER NOT NULL,
-  status TEXT NOT NULL,
-  ens_label TEXT UNIQUE,
-  ens_registered BOOLEAN DEFAULT FALSE,
-  ens_registered_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tabla de préstamos
-CREATE TABLE loans (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  loan_id TEXT NOT NULL UNIQUE,
-  invoice_id UUID REFERENCES invoices(id),
-  token_id TEXT NOT NULL,
-  amount TEXT NOT NULL,
-  tx_hash TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'active',
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Tabla de registros ENS
-CREATE TABLE ens_registrations (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  org_id TEXT NOT NULL,
-  ens_label TEXT NOT NULL UNIQUE,
-  full_domain TEXT NOT NULL,
-  owner_address TEXT NOT NULL,
-  tx_hash TEXT,
-  registered_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(org_id, ens_label)
-);
-
--- Índices
-CREATE INDEX idx_invoices_cfdi_hash ON invoices(cfdi_hash);
-CREATE INDEX idx_invoices_nft_token_id ON invoices(nft_token_id);
-CREATE INDEX idx_loans_token_id ON loans(token_id);
-CREATE INDEX idx_kyb_results_ens_label ON kyb_results(ens_label);
-CREATE INDEX idx_ens_registrations_org_id ON ens_registrations(org_id);
-```
-
-#### Obtener Claves de Supabase
-
-1. Ve a [Supabase Dashboard](https://supabase.com/dashboard)
-2. Selecciona tu proyecto
-3. Settings → API
-4. Copia:
-   - **URL**: `NEXT_PUBLIC_SUPABASE_URL`
-   - **Publishable Key**: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-   - **Service Role Key**: `SUPABASE_SERVICE_ROLE_KEY` (⚠️ secreta)
-
-### 4. Configuración de ENS (Mainnet)
-
-#### Pre-requisitos
-
-- Tener `liquifidev.eth` (o tu dominio padre) registrado y wrapped en Mainnet
-- Wallet con ETH en Mainnet para gas
-
-#### Calcular Namehash
-
-```bash
-cd contracts
-npm run calculate-namehash liquifidev.eth
-```
-
-Esto genera el `ENS_PARENT_NODE` necesario.
-
-#### Deployment del Contrato ENS
-
-```bash
-cd contracts
-npm run deploy:mainnet
-```
-
-Esto despliega `ENSSubnameRegistrar` en Mainnet. Copia la dirección a `.env.local` como `NEXT_PUBLIC_ENS_REGISTRAR_MAINNET`.
-
-## 🚀 Deployment de Contratos
-
-### Compilar Contratos
-
-```bash
-cd contracts
-npm run compile
-```
-
-### Deploy a Arbitrum Sepolia (L2)
-
-```bash
-cd contracts
-npm run deploy:arb
-```
-
-Este script:
-1. Despliega MockUSDC, LiquiFiINFT, LiquidityVault, y LoanManager
-2. Configura LoanManager en el Vault
-3. Mina tokens iniciales para testing
-
-**Actualiza `.env.local`** con las direcciones de los contratos desplegados.
-
-### Copiar ABIs
-
-```bash
-npm run copy-abis
-```
-
-Copia los ABIs generados a `/abi` para uso en el frontend.
-
-## 💻 Desarrollo
-
-### Ejecutar en Desarrollo
-
-```bash
-npm run dev
-```
-
-Abre [http://localhost:3000](http://localhost:3000)
-
-### Scripts Disponibles
-
-```bash
-# Desarrollo
-npm run dev              # Inicia servidor de desarrollo
-npm run build            # Build de producción
-npm run lint             # Linter
-
-# Contratos
-cd contracts
-npm run compile          # Compilar contratos
-npm run deploy:arb       # Deploy a Arbitrum Sepolia
-npm run deploy:mainnet   # Deploy ENS a Mainnet
-npm run calculate-namehash <domain>  # Calcular namehash ENS
-```
-
-## 📖 Flujo de Uso
-
-### Para Prestatarios
-
-1. **Conectar Wallet**: Conecta MetaMask (Arbitrum Sepolia)
-2. **Subir Factura CFDI**: Sube archivo XML/PDF de factura
-3. **Verificación KYB**: 
-   - Ingresa nombre de usuario ENS (ej: `miempresa`)
-   - Ejecuta KYB (mock, genera score 80-100)
-   - Si aprobado, se registra automáticamente `miempresa.liquifidev.eth` en Mainnet
-4. **Mintear NFT**: La factura se tokeniza como NFT ERC-721
-5. **Solicitar Préstamo**: 
-   - Máximo 70% LTV del valor de la factura
-   - Si ya tienes ENS registrado, se omite KYB
-   - Recibe USDC en minutos
-6. **Repagar Préstamo**: Llama a `LoanManager.repayLoan()` para recuperar el NFT
-
-### Para Inversores (Liquidity Providers)
-
-1. **Conectar Wallet**: Conecta MetaMask (Arbitrum Sepolia)
-2. **Aprobar USDC**: Aprueba `LiquidityVault` para gastar mUSDC
-3. **Depositar**: Deposita USDC en el vault y recibe shares ERC-4626
-4. **Ganar Rendimientos**: Obtén 8-15% APY respaldado por préstamos activos
-5. **Retirar**: Canjea shares por USDC cuando quieras
-
-## 🏗️ Smart Contracts
-
-### L1: Ethereum Mainnet
-
-#### ENSSubnameRegistrar
-- **Propósito**: Gestionar subdominios ENS bajo el dominio padre
-- **Features**: Registro automático de subdominios, autorización de wallets
-- **Símbolo**: `empresa.liquifidev.eth`
-
-### L2: Arbitrum Sepolia
-
-#### MockUSDC
-- **Propósito**: Token ERC-20 de prueba (6 decimales)
-- **Features**: Mintable por owner
-- **Símbolo**: `mUSDC`
-
-#### LiquiFiINFT
-- **Propósito**: NFT ERC-721 para facturas tokenizadas
-- **Features**: Metadata completa (deudor, monto, fecha vencimiento, URI)
-- **Símbolo**: `LINFT`
-
-#### LiquidityVault
-- **Propósito**: Vault ERC-4626 estándar para depósitos LP
-- **Features**: 
-  - Accounting basado en shares
-  - Presta fondos a prestatarios vía LoanManager
-  - Acepta NFTs como colateral (ERC721Receiver)
-- **Símbolo**: `LQFv` (LiquiFi Vault Share)
-
-#### LoanManager
-- **Propósito**: Orquestar préstamos usando NFTs como colateral
-- **Features**:
-  - Máximo 70% LTV
-  - Verificación opcional de autorización ENS
-  - Cálculo de interés (10% anual)
-  - Manejo de pagos y liquidaciones
-- **Seguridad**: ReentrancyGuard, validación de inputs, custom errors
-
-## 🔒 Características de Seguridad
-
-- **ReentrancyGuard** en todas las funciones que modifican estado
-- **Custom errors** para eficiencia de gas
-- **Validación de inputs** (direcciones cero, fechas, límites LTV)
-- **Control de acceso** (Ownable, onlyLoanManager)
-- **ERC721Receiver** para transferencias seguras de NFTs
-- **Zero-knowledge** KYB (mock en MVP, preparado para integración real)
-
-## 🌐 Deployment en Vercel
-
-### Variables Requeridas
-
-Configura estas 14 variables en Vercel Dashboard → Settings → Environment Variables:
-
-**Variables Públicas (9):**
-- `NEXT_PUBLIC_ALCHEMY_API_KEY`
-- `NEXT_PUBLIC_ALCHEMY_POLICY_ID`
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `NEXT_PUBLIC_MOCK_USDC_ADDRESS`
-- `NEXT_PUBLIC_INFT_CONTRACT_ADDRESS`
-- `NEXT_PUBLIC_VAULT_CONTRACT_ADDRESS`
-- `NEXT_PUBLIC_LOAN_MANAGER_ADDRESS`
-- `NEXT_PUBLIC_ENS_REGISTRAR_MAINNET`
-
-**Variables Privadas (5) - Marcar como Encrypted:**
-- `SUPABASE_SERVICE_ROLE_KEY` ⚠️
-- `DEPLOYER_PRIVATE_KEY` ⚠️
-- `ENS_PARENT_NAME`
-- `ALCHEMY_MAINNET_API_KEY`
-- `ENS_PARENT_NODE`
-
-Ver `VERCEL_ENV_VARS.txt` para lista completa con valores de ejemplo.
-
-## 🔍 Verificación de Transacciones
-
-### Exploradores de Blockchain
-
-**Arbitrum Sepolia (L2)**:
-- Arbiscan: https://sepolia.arbiscan.io/
-  - Transaction: `https://sepolia.arbiscan.io/tx/<tx_hash>`
-  - Contract: `https://sepolia.arbiscan.io/address/<contract_address>`
-
-**Ethereum Mainnet (L1 - ENS)**:
-- Etherscan: https://etherscan.io/
-  - Transaction: `https://etherscan.io/tx/<tx_hash>`
-  - Contract: `https://etherscan.io/address/<contract_address>`
-
-### Script de Verificación
-
-```bash
-npm run verify-tx <transaction_hash>
-```
-
-El script verifica:
-- Estado de la transacción y uso de gas
-- Estado del deployment del contrato
-- Event logs
-- Proporciona links a exploradores
-
-## 📊 API Routes
-
-- `POST /api/invoices` - Subir y almacenar metadata de factura
-- `POST /api/kyb` - Verificación KYB (mock) y registro ENS
-- `POST /api/mint` - Mintear NFT de factura (firmado por servidor)
-- `POST /api/borrow` - Iniciar préstamo vía LoanManager
-- `POST /api/ens/check-label` - Verificar disponibilidad de label ENS
-- `POST /api/mint-musdc` - Mint MockUSDC para testing
-
-## 📁 Estructura del Proyecto
-
-```
-liquifi/
-├── app/
-│   ├── api/              # API routes (invoices, kyb, mint, borrow)
-│   ├── borrow/           # Página de préstamos
-│   ├── invest/           # Página de inversión
-│   ├── page.tsx          # Home page
-│   └── layout.tsx        # Root layout
-├── components/            # Componentes React compartidos
-│   ├── ConnectWallet.tsx
-│   ├── UploadCFDI.tsx
-│   ├── MintInvoice.tsx
-│   ├── KYBVerification.tsx
-│   ├── VaultActions.tsx
-│   └── LoanSummary.tsx
-├── lib/
-│   ├── wagmi.ts          # Configuración Wagmi
-│   ├── supabase.ts       # Cliente Supabase (server-only)
-│   └── contracts.ts      # Direcciones y ABIs
-├── contracts/
-│   ├── contracts/        # Contratos Solidity
-│   ├── scripts/          # Scripts de deployment
-│   └── hardhat.config.ts
-├── abi/                  # ABIs generados
-└── supabase/
-    └── migrations/        # Migraciones SQL
-```
-
-## ⚠️ Notas Importantes
-
-- **MVP Implementation**: 
-  - Minting es owner-only. Para producción, agregar control de acceso apropiado.
-  - KYB y validación de facturas son **mocked** en MVP.
-  - ENS integration es recomendada para producción.
-
-- **Fees**: No hay fees en MVP. En producción, considerar comisiones de factoraje (0.5-1.8%) y performance fees (20% de rendimiento sobre 12% APY).
-
-- **Gas Costs**: 
-  - Mint NFT: ~0.0001 ETH (L2)
-  - Iniciar préstamo: ~0.0002 ETH (L2)
-  - Registrar ENS: ~0.001-0.003 ETH (L1 Mainnet)
-
-- **Testing**: Asegúrate de tener testnet ETH en Arbitrum Sepolia y ETH en Mainnet para operaciones ENS.
-
-## 📄 Licencia
-
-MIT
 
 ---
 
-**LiquiFi** - El futuro de las finanzas en Latinoamérica es descentralizado, tokenizado y onchain. Y comienza ahora.
+## 🚀 Deployment Guide
+
+### Database Setup
+1. Open your **Supabase Dashboard** and navigate to the **SQL Editor**.
+2. Run the SQL schema script provided in [supabase/migrations/](file:///Users/alejandro/repos/liquifi/supabase/migrations/) or refer to the tables configuration in the setup manual. This sets up:
+   - `invoices`: Tracks invoice statuses, hashes, and matching NFT Token IDs.
+   - `kyb_results`: Stores organizational credit scores and registered ENS statuses.
+   - `loans`: Logs active and settled loans.
+   - `ens_registrations`: Resolves domains to wallets and tracks transaction receipts.
+
+### Smart Contracts Deployment
+
+#### 1. Compile Contracts
+Compile Solidity source files and generate TypeChain typings:
+```bash
+cd contracts
+bunx hardhat compile
+```
+
+#### 2. Deploy to L2 (Arbitrum Sepolia)
+```bash
+bun run deploy:arb
+```
+This script:
+1. Deploys `MockUSDC`, `LiquiFiINFT`, `LiquidityVault`, and `LoanManager`.
+2. Pairs the `LoanManager` address in the Vault.
+3. Mints initial `mUSDC` test liquidity and deposits it to seed the Vault.
+
+#### 3. Deploy L1 Identity Contract (Ethereum Mainnet/Sepolia)
+Ensure your deployer wallet owns a wrapped ENS domain name (e.g., `liquifidev.eth`), then run:
+```bash
+# Calculate parent node namehash
+bun run calculate-namehash liquifidev.eth
+
+# Deploy ENSSubnameRegistrar
+bun run deploy:mainnet
+```
+
+#### 4. Export ABIs
+Update the frontend with compiled contract interfaces:
+```bash
+# From the project root directory
+bun run copy-abis
+```
+
+---
+
+## 💻 Available Scripts
+
+Run the following scripts from the project root using Bun:
+
+### Frontend
+- `bun run dev`: Starts the Next.js development server on [http://localhost:3000](http://localhost:3000).
+- `bun run build`: Creates an optimized production build of the Next.js frontend.
+- `bun run lint`: Lints codebase files with relaxed rules for production checkouts.
+
+### Helper & Validation Scripts
+- `bun run copy-abis`: Copies compiled Hardhat artifacts to the frontend `/abi` directory.
+- `bun run generate-wallet`: Generates a fresh random Ethereum wallet address and private key.
+- `bun run verify-tx <tx_hash>`: Inspects details, events, gas, and returns explorers links for a given transaction hash.
+- `bun run test:supabase`: Confirms connectivity and write access to the configured Supabase client.
+- `bun run test:alchemy`: Validates JSON-RPC connectivity with Alchemy L1 and L2 endpoints.
+
+---
+
+## 🔒 Security & Optimization Features
+
+- **ReentrancyGuard**: Prevents reentrancy attacks across state-sensitive interactions (repayments, withdrawals).
+- **Custom Solidity Errors**: Drastically optimizes gas efficiency during execution reverts compared to traditional revert strings.
+- **Strict Input Sanitization**: Validates parameters (zero-addresses, limits, grace-periods) in all core contract interfaces.
+- **Owner Controlled Minting**: Invoices are minted on L2 via server-side signatures verifying off-chain CFDI uploads and hashes, avoiding double-financing.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+**LiquiFi** - Redefining invoice factoring through decentralized, real-world asset (RWA) financing. Built with ❤️ at Ethereum Mexico 2025.

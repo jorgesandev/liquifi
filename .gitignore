@@ -55,3 +55,7 @@ contracts/.env
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# antigravity CLI configs
+.antigravitycli/
+

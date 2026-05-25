@@ -165,7 +165,7 @@ contract LoanManager is Ownable, ReentrancyGuard {
         if (msg.sender != loan.borrower) revert NotBorrower();
 
         // Calculate interest (for future use)
-        uint256 interest = calculateInterest(loanId);
+        // uint256 interest = calculateInterest(loanId);
         // For MVP, we require at least principal repayment
         if (amount < loan.principal) revert InsufficientLTV();
 

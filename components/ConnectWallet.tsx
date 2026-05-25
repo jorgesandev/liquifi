@@ -14,7 +14,8 @@ export function ConnectWallet() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Close dropdown when clicking outside
@@ -79,7 +80,7 @@ export function ConnectWallet() {
         >
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
           <span className="font-medium">Wallet conectada</span>
-          <span className="font-mono text-green-800">...{address.slice(-4)}</span>
+          <span className="font-mono text-green-800">{shortAddress}</span>
           <ChevronDown className={`w-4 h-4 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
         </button>
 

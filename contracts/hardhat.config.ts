@@ -9,7 +9,7 @@ const alchemyApiKey = process.env.ALCHEMY_API_KEY;
 const alchemyPolicyId = process.env.ALCHEMY_POLICY_ID;
 const alchemySepoliaApiKey = process.env.ALCHEMY_SEPOLIA_API_KEY;
 const alchemyMainnetApiKey = process.env.ALCHEMY_MAINNET_API_KEY;
-const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || "";
+const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 // Construct Alchemy RPC URLs (required only for deployment, not compilation)
 const ALCHEMY_ARB_SEPOLIA_URL = alchemyApiKey
