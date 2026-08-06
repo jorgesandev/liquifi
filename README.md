@@ -6,6 +6,12 @@ LiquiFi is a next-generation decentralized invoice financing (factoring) platfor
 
 🌐 **Live Demo:** [liquifidev.vercel.app](https://liquifidev.vercel.app)
 
+![LiquiFi product overview](docs/screenshots/overview.png)
+
+## My Contribution
+
+I built and integrated the Next.js product experience, Supabase-backed invoice flows, Web3 interactions, and the working hackathon demo. LiquiFi won 1st place in the Arbitrum Innovation Track at Ethereum México 2025.
+
 ---
 
 ## 📖 Table of Contents
@@ -131,19 +137,19 @@ liquifi/
 ## 📜 Smart Contracts
 
 ### L1 Ethereum Mainnet (Identity)
-- [ENSSubnameRegistrar.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/ENSSubnameRegistrar.sol)
+- [ENSSubnameRegistrar.sol](contracts/contracts/ENSSubnameRegistrar.sol)
   - **Purpose**: Issues off-chain validated organizations a custom `name.liquifidev.eth` subdomain.
   - **Mechanics**: Implements subname wrapping. The parent node must be wrapped and owned by the registrar contract.
 
 ### L2 Arbitrum Sepolia (DeFi Core)
-- [MockUSDC.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/MockUSDC.sol)
+- [MockUSDC.sol](contracts/contracts/MockUSDC.sol)
   - **Purpose**: Mock ERC-20 token mimicking USDC (6 decimals) for local testing and testnet interactions.
-- [LiquiFiINFT.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/LiquiFiINFT.sol)
+- [LiquiFiINFT.sol](contracts/contracts/LiquiFiINFT.sol)
   - **Purpose**: ERC-721 representing tokenized invoices.
   - **Metadata**: Stores debtor address, invoice amount, due date, and IPFS metadata URI.
-- [LiquidityVault.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/LiquidityVault.sol)
+- [LiquidityVault.sol](contracts/contracts/LiquidityVault.sol)
   - **Purpose**: ERC-4626 vault managing pool liquidity, accepting deposits, and minting vault shares (`LQFv`). It serves as the custodian for invoice NFTs locked as collateral.
-- [LoanManager.sol](file:///Users/alejandro/repos/liquifi/contracts/contracts/LoanManager.sol)
+- [LoanManager.sol](contracts/contracts/LoanManager.sol)
   - **Purpose**: Oversees lending operations. It enforces the maximum 70% LTV parameter, calculates annual interest rates (10%), manages repayments, and coordinates default liquidations.
 
 ---
@@ -240,7 +246,7 @@ ENS_PARENT_NODE=0x...
 
 ### Database Setup
 1. Open your **Supabase Dashboard** and navigate to the **SQL Editor**.
-2. Run the SQL schema script provided in [supabase/migrations/](file:///Users/alejandro/repos/liquifi/supabase/migrations/) or refer to the tables configuration in the setup manual. This sets up:
+2. Run the SQL schema scripts in [supabase/migrations/](supabase/migrations/) or refer to the tables configuration in the setup manual. This sets up:
    - `invoices`: Tracks invoice statuses, hashes, and matching NFT Token IDs.
    - `kyb_results`: Stores organizational credit scores and registered ENS statuses.
    - `loans`: Logs active and settled loans.
